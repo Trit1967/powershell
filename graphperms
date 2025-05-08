@@ -1,3 +1,9 @@
+# Connect if not already connected
+if (-not (Get-MgContext)) {
+    Connect-MgGraph -Scopes "Directory.Read.All","DeviceManagementApps.Read.All"
+}
+
+# Required scopes
 $requiredScopes = @(
     "DeviceManagementApps.Read.All",
     "DeviceManagementManagedDevices.Read.All",
@@ -6,9 +12,21 @@ $requiredScopes = @(
     "Directory.Read.All"
 )
 
+# Pull current scopes
 $currentScopes = (Get-MgContext).Scopes
-Write-Host "`n🔍 Checking Required Microsoft Graph Permissions:`n"
 
+# Confirm both are not null
+if (-not $currentScopes) {
+    Write-Error "Current scopes are empty. Make sure you're signed in with the correct scopes."
+    return
+}
+
+if (-not $requiredScopes) {
+    Write-Error "Required scopes list is empty."
+    return
+}
+
+# Loop and compare
 foreach ($scope in $requiredScopes) {
     if ($currentScopes -contains $scope) {
         Write-Host "✅ $scope"
