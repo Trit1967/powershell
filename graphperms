@@ -1,0 +1,20 @@
+# Define required Graph scopes
+$requiredScopes = @(
+    "DeviceManagementApps.Read.All",
+    "Mail.Send"
+)
+
+# Get current token scopes from the session
+$currentScopes = (Get-MgContext).Scopes
+
+Write-Host "`n🔍 Checking if current session has required Microsoft Graph scopes:`n"
+
+foreach ($scope in $requiredScopes) {
+    if ($currentScopes -contains $scope) {
+        Write-Host "✅ $scope is present"
+    } else {
+        Write-Host "❌ $scope is MISSING"
+    }
+}
+
+Write-Host "`nCurrent scopes: $($currentScopes -join ', ')"
