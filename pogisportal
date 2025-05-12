@@ -1,26 +1,45 @@
-
 ===== .NET SDK and Application Detection Report =====
-Generated on: 05/12/2025 14:59:12
+Generated on: 05/12/2025 15:09:58
 
 
 ===== Method 1: dotnet CLI Information =====
+.NET SDK:
+ Version:           8.0.402
+ Commit:            70aa751718
+ Workload version:  8.0.400-manifests.b6724b7a
+ MSBuild version:   17.11.4+37eb419ad
+
+Runtime Environment:
+ OS Name:     Windows
+ OS Version:  10.0.22621
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\8.0.402\
+
+.NET workloads installed:
+Configured to use loose manifests when installing new manifests.
+There are no installed workloads to display.
 
 Host:
   Version:      9.0.4
   Architecture: x64
   Commit:       f57e6dc747
-  RID:          win-x64
 
 .NET SDKs installed:
-  No SDKs were found.
+  6.0.427 [C:\Program Files\dotnet\sdk]
+  8.0.402 [C:\Program Files\dotnet\sdk]
 
 .NET runtimes installed:
-  Microsoft.AspNetCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 6.0.35 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 6.0.36 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 8.0.8 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
   Microsoft.AspNetCore.App 8.0.15 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
   Microsoft.AspNetCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
-  Microsoft.NETCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
-  Microsoft.NETCore.App 8.0.15 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 6.0.35 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 8.0.8 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
   Microsoft.NETCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 6.0.35 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+  Microsoft.WindowsDesktop.App 8.0.8 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
 
 Other architectures found:
   x86   [C:\Program Files (x86)\dotnet]
@@ -40,68 +59,938 @@ Download .NET:
 
 ===== Method 2: Installed .NET Components (Programs and Features) =====
 
-Name                                                 Version      InstallDate
-----                                                 -------      -----------
-Microsoft .NET Runtime - 9.0.4 (x86)                 72.16.31125  20250409   
-Microsoft .NET Host - 9.0.4 (x86)                    72.16.31125  20250409   
-Microsoft .NET Host FX Resolver - 7.0.20 (x86)       56.80.15184  20240606   
-Microsoft .NET Host FX Resolver - 9.0.4 (x86)        72.16.31125  20250409   
-Microsoft .NET Runtime - 8.0.15 (x64)                64.60.31149  20250409   
-Microsoft ASP.NET Core 8.0.15 Shared Framework (x86) 8.0.15.25165 20250409   
-Microsoft .NET Host FX Resolver - 8.0.15 (x86)       64.60.31149  20250409   
-Microsoft .NET Host - 9.0.4 (x64)                    72.16.31125  20250409   
-Microsoft .NET Host FX Resolver - 8.0.15 (x64)       64.60.31149  20250409   
-Microsoft ASP.NET Core Module V2                     19.0.25073.0 20250409   
-Microsoft ASP.NET Core 8.0.15 Shared Framework (x64) 8.0.15.25165 20250409   
-Microsoft .NET Host - 8.0.15 (x64)                   64.60.31149  20250409   
-Microsoft ASP.NET Core 9.0.4 Hosting Bundle Options  9.0.4.25164  20250409   
-Microsoft ASP.NET Core 7.0.20 Shared Framework (x64) 7.0.20.24269 20240606   
-Microsoft ASP.NET Core 7.0.20 Shared Framework (x86) 7.0.20.24269 20240606   
-Microsoft .NET Runtime - 7.0.20 (x64)                56.80.15184  20240606   
-Microsoft .NET Host - 7.0.20 (x86)                   56.80.15184  20240606   
-Microsoft .NET Host - 7.0.20 (x64)                   56.80.15184  20240606   
-Microsoft .NET Host - 8.0.15 (x86)                   64.60.31149  20250409   
-Microsoft .NET Runtime - 9.0.4 (x64)                 72.16.31125  20250409   
-Microsoft .NET Host FX Resolver - 9.0.4 (x64)        72.16.31125  20250409   
-Microsoft .NET Runtime - 7.0.20 (x86)                56.80.15184  20240606   
-Microsoft ASP.NET Core 8.0.15 Hosting Bundle Options 8.0.15.25165 20250409   
-Microsoft ASP.NET Core 9.0.4 Shared Framework (x64)  9.0.4.25164  20250409   
-Microsoft ASP.NET Core 9.0.4 Shared Framework (x86)  9.0.4.25164  20250409   
-Microsoft .NET Host FX Resolver - 7.0.20 (x64)       56.80.15184  20240606   
-Microsoft .NET Runtime - 8.0.15 (x86)                64.60.31149  20250409   
-Microsoft ASP.NET Core 7.0.20 Hosting Bundle Options 7.0.20.24269 20240606   
+Name                                                                    Version        InstallDate
+----                                                                    -------        -----------
+Microsoft .NET Runtime - 9.0.4 (x86)                                    72.16.31125    20250409   
+Microsoft.NET.Sdk.Maui.Manifest-8.0.100 (x64)                           8.0.3          20240927   
+Microsoft .NET Host - 9.0.4 (x86)                                       72.16.31125    20250409   
+Microsoft.NET.Sdk.Maui.Manifest-6.0.300                                 24.78.0        20240318   
+Microsoft.NET.Workload.Mono.Toolchain.Current.Manifest (x64)            64.32.18380    20240927   
+Microsoft .NET Host - 6.0.35 (x64)                                      48.140.21458   20241018   
+Microsoft .NET 6.0 Templates 6.0.427 (x64)                              24.8.55382     20241018   
+Microsoft .NET Host FX Resolver - 6.0.35 (x64)                          48.140.21458   20241018   
+Microsoft .NET Targeting Pack - 8.0.8 (x64)                             64.32.18380    20240927   
+Microsoft ASP.NET Core 6.0.35 Targeting Pack (x64)                      6.0.35.24462   20241018   
+Microsoft.NET.Sdk.Android.Manifest-6.0.300                              128.75.16384   20240318   
+Microsoft Visual Studio Tools for Applications 2019 x64 Hosting Support 16.0.31110     20240315   
+Microsoft .NET Host FX Resolver - 9.0.4 (x86)                           72.16.31125    20250409   
+Microsoft Visual Studio Tools for Applications 2019 x86 Hosting Support 16.0.31110     20240315   
+Microsoft ASP.NET Core 8.0.8 Shared Framework (x64)                     8.0.8.24369    20240927   
+Microsoft ASP.NET Core 6.0.35 Shared Framework (x64)                    6.0.35.24462   20241015   
+Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest (x64)               64.32.18380    20240927   
+Microsoft .NET Host FX Resolver - 8.0.15 (x86)                          64.60.31149    20250409   
+Microsoft.NET.Sdk.iOS.Manifest-8.0.100 (x64)                            17.0.8478      20240927   
+Microsoft .NET Toolset 8.0.402 (x64)                                    32.8.55181     20240927   
+Microsoft .NET Targeting Pack - 6.0.35 (x64)                            48.140.21458   20241018   
+Microsoft.NET.Sdk.Aspire.Manifest-8.0.100 (x64)                         64.0.5426      20240927   
+Microsoft .NET AppHost Pack - 6.0.35 (x64)                              48.140.21458   20241018   
+Microsoft .NET Host - 9.0.4 (x64)                                       72.16.31125    20250409   
+Microsoft.NET.Sdk.macOS.Manifest-8.0.100 (x64)                          14.0.8478      20240927   
+Microsoft.NET.Workload.Mono.Toolchain.Manifest                          48.3.40665     20240318   
+Microsoft ASP.NET Core 8.0.15 Shared Framework (x64)                    8.0.15.25165   20250411   
+Cisco Secure Client - Network Access Manager                            5.1.4.74       20240918   
+Microsoft .NET AppHost Pack - 6.0.35 (x64_arm)                          48.140.21458   20241018   
+Microsoft.NET.Workload.Emscripten.Manifest (x64)                        48.140.20194   20241018   
+Microsoft .NET Host FX Resolver - 8.0.8 (x64)                           64.32.18380    20240927   
+Microsoft.NET.Sdk.MacCatalyst.Manifest-6.0.300                          125.191.42208  20240318   
+Microsoft.NET.Sdk.tvOS.Manifest-8.0.100 (x64)                           17.0.8478      20240927   
+Microsoft .NET Host - 8.0.8 (x64)                                       64.32.18380    20240927   
+Microsoft ASP.NET Core 9.0.4 Hosting Bundle Options                     9.0.4.25164    20250409   
+Microsoft.NET.Sdk.macOS.Manifest-6.0.300                                100.255.42208  20240318   
+Microsoft .NET AppHost Pack - 8.0.8 (x64_x86)                           64.32.18380    20240927   
+Microsoft .NET AppHost Pack - 8.0.8 (x64_arm64)                         64.32.18380    20240927   
+Microsoft.NET.Sdk.Android.Manifest-8.0.100 (x64)                        34.0.43        20240927   
+Microsoft .NET AppHost Pack - 8.0.8 (x64)                               64.32.18380    20240927   
+Microsoft ASP.NET Core 8.0.8 Targeting Pack (x64)                       8.0.8.24369    20240927   
+Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest (x64)               64.32.18380    20240927   
+Microsoft .NET AppHost Pack - 6.0.35 (x64_x86)                          48.140.21458   20241018   
+Microsoft.NET.Workload.Emscripten.net6.Manifest (x64)                   64.32.18242    20240927   
+Microsoft.NET.Sdk.MacCatalyst.Manifest-8.0.100 (x64)                    17.0.8478      20240927   
+Microsoft.NET.Workload.Emscripten.Current.Manifest (x64)                64.32.18242    20240927   
+Microsoft .NET Host - 8.0.15 (x86)                                      64.60.31149    20250409   
+Microsoft .NET 8.0 Templates 8.0.402 (x64)                              32.10.22413    20240927   
+Microsoft .NET AppHost Pack - 6.0.35 (x64_arm64)                        48.140.21458   20241018   
+Microsoft .NET Runtime - 9.0.4 (x64)                                    72.16.31125    20250409   
+Microsoft .NET Runtime - 8.0.8 (x64)                                    64.32.18380    20240927   
+Microsoft .NET Standard Targeting Pack - 2.1.0 (x64)                    24.0.28113     20240318   
+Microsoft .NET Host FX Resolver - 9.0.4 (x64)                           72.16.31125    20250409   
+Microsoft .NET Runtime - 6.0.35 (x64)                                   48.140.21458   20241018   
+Microsoft.NET.Sdk.iOS.Manifest-6.0.300                                  125.191.42208  20240318   
+Microsoft ASP.NET Core 6.0.36 Shared Framework (x64)                    6.0.36.24516   20241126   
+Microsoft.NET.Workload.Emscripten.net7.Manifest (x64)                   64.32.18242    20240927   
+Microsoft ASP.NET Core 9.0.4 Shared Framework (x64)                     9.0.4.25164    20250409   
+Microsoft ASP.NET Core 9.0.4 Shared Framework (x86)                     9.0.4.25164    20250409   
+Microsoft .NET Toolset 6.0.427 (x64)                                    24.14.55382    20241018   
+Microsoft.NET.Sdk.tvOS.Manifest-6.0.300                                 125.191.42208  20240318   
+Visual Studio 2017 Isolated Shell for SSMS                              15.0.28308.421 20240315   
+Microsoft .NET Runtime - 8.0.15 (x86)                                   64.60.31149    20250409   
 
 
 
 
 ===== Method 3: .NET SDK Directories =====
-No .NET SDK directory found in Program Files
+
+Name    LastWriteTime        
+----    -------------        
+6.0.427 10/18/2024 8:02:50 PM
+8.0.402 9/27/2024 10:06:09 AM
+
+
+
 
 ===== Method 4: .NET Framework Registry Entries =====
 
-PSChildName Version  
------------ -------  
-Client      4.8.03761
-1033        4.8.03761
-Full        4.8.03761
-1033        4.8.03761
-Client      4.0.0.0  
+PSChildName                      Version       
+-----------                      -------       
+v2.0.50727                       2.0.50727.4927
+1033                             2.0.50727.4927
+v3.0                             3.0.30729.4926
+Setup                            3.0.30729.4926
+1033                             3.0.30729.4926
+Windows Communication Foundation 3.0.4506.4926 
+Windows Presentation Foundation  3.0.6920.4902 
+v3.5                             3.5.30729.4926
+1033                             3.5.30729.4926
+Client                           4.8.09032     
+1033                             4.8.09032     
+Full                             4.8.09032     
+1033                             4.8.09032     
+Client                           4.0.0.0       
 
 
 
 
 ===== Method 5: Applications Likely Using .NET =====
 
+Name                                                                    Version        InstallDate
+----                                                                    -------        -----------
+Data Interoperability for ArcGIS Pro                                    3.3.52635      20240927   
+ArcGIS Pro                                                              3.3.52636      20240927   
+Microsoft Visual Studio Tools for Applications 2019 x64 Hosting Support 16.0.31110     20240315   
+Microsoft OLE DB Driver for SQL Server                                  18.6.7.0       20240315   
+Microsoft Visual Studio Tools for Applications 2019 x86 Hosting Support 16.0.31110     20240315   
+Microsoft Azure CLI (64-bit)                                            2.58.0         20240320   
+ArcGIS Desktop 10.8.1                                                   10.8.14362     20240408   
+Microsoft ODBC Driver 17 for SQL Server                                 17.10.5.1      20240315   
+Microsoft Azure CLI (32-bit)                                            2.70.0         20250328   
+SQL Server Management Studio Language Pack - English                    19.3.4.0       20240315   
+SQL Server Management Studio                                            19.3.4.0       20240315   
+Microsoft ODBC Driver 18 for SQL Server                                 18.3.3.1       20240927   
+Visual Studio 2017 Isolated Shell for SSMS                              15.0.28308.421 20240315   
+
+
+
 
 ===== Applications Installed Around Same Time as .NET Components =====
+.NET Component: Microsoft .NET Runtime - 9.0.4 (x86) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft.NET.Sdk.Maui.Manifest-8.0.100 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Host - 9.0.4 (x86) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft.NET.Sdk.Maui.Manifest-6.0.300 (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Microsoft.NET.Workload.Mono.Toolchain.Current.Manifest (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Host - 6.0.35 (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft .NET 6.0 Templates 6.0.427 (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft .NET Host FX Resolver - 6.0.35 (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft .NET Targeting Pack - 8.0.8 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft ASP.NET Core 6.0.35 Targeting Pack (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft.NET.Sdk.Android.Manifest-6.0.300 (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Microsoft .NET Host FX Resolver - 9.0.4 (x86) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft ASP.NET Core 8.0.8 Shared Framework (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Host FX Resolver - 8.0.15 (x86) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft.NET.Sdk.iOS.Manifest-8.0.100 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Toolset 8.0.402 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Targeting Pack - 6.0.35 (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft.NET.Sdk.Aspire.Manifest-8.0.100 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET AppHost Pack - 6.0.35 (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft .NET Host - 9.0.4 (x64) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft.NET.Sdk.macOS.Manifest-8.0.100 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft.NET.Workload.Mono.Toolchain.Manifest (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Cisco Secure Client - Network Access Manager (Installed: 20240918)
+    Related applications:
+
+Name                                 Version  InstallDate
+----                                 -------  -----------
+Cisco Secure Client - AnyConnect VPN 5.1.4.74 20240918   
+
+
+
+.NET Component: Microsoft .NET AppHost Pack - 6.0.35 (x64_arm) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft.NET.Workload.Emscripten.Manifest (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft .NET Host FX Resolver - 8.0.8 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft.NET.Sdk.MacCatalyst.Manifest-6.0.300 (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Microsoft.NET.Sdk.tvOS.Manifest-8.0.100 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Host - 8.0.8 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft ASP.NET Core 9.0.4 Hosting Bundle Options (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft.NET.Sdk.macOS.Manifest-6.0.300 (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Microsoft .NET AppHost Pack - 8.0.8 (x64_x86) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET AppHost Pack - 8.0.8 (x64_arm64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft.NET.Sdk.Android.Manifest-8.0.100 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET AppHost Pack - 8.0.8 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft ASP.NET Core 8.0.8 Targeting Pack (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET AppHost Pack - 6.0.35 (x64_x86) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft.NET.Workload.Emscripten.net6.Manifest (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft.NET.Sdk.MacCatalyst.Manifest-8.0.100 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft.NET.Workload.Emscripten.Current.Manifest (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Host - 8.0.15 (x86) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft .NET 8.0 Templates 8.0.402 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET AppHost Pack - 6.0.35 (x64_arm64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft .NET Runtime - 9.0.4 (x64) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft .NET Runtime - 8.0.8 (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft .NET Standard Targeting Pack - 2.1.0 (x64) (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Microsoft .NET Host FX Resolver - 9.0.4 (x64) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft .NET Runtime - 6.0.35 (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft.NET.Sdk.iOS.Manifest-6.0.300 (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Microsoft.NET.Workload.Emscripten.net7.Manifest (x64) (Installed: 20240927)
+    Related applications:
+
+Name                                                   Version     InstallDate
+----                                                   -------     -----------
+BeyondTrust Remote Support Virtual Smart Card Customer 1.2.6.1     20240927   
+Data Interoperability for ArcGIS Pro                   3.3.52635   20240927   
+ArcGIS Pro                                             3.3.52636   20240927   
+Microsoft Windows Desktop Runtime - 8.0.8 (x64)        64.32.18376 20240927   
+Microsoft Windows Desktop Targeting Pack - 8.0.8 (x64) 64.32.18376 20240927   
+Microsoft ODBC Driver 18 for SQL Server                18.3.3.1    20240927   
+
+
+
+.NET Component: Microsoft ASP.NET Core 9.0.4 Shared Framework (x64) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft ASP.NET Core 9.0.4 Shared Framework (x86) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
+.NET Component: Microsoft .NET Toolset 6.0.427 (x64) (Installed: 20241018)
+    Related applications:
+
+Name                                                    Version      InstallDate
+----                                                    -------      -----------
+Microsoft Windows Desktop Runtime - 6.0.35 (x64)        48.140.21525 20241018   
+Microsoft Windows Desktop Targeting Pack - 6.0.35 (x64) 48.140.21525 20241018   
+
+
+
+.NET Component: Microsoft.NET.Sdk.tvOS.Manifest-6.0.300 (Installed: 20240318)
+    Related applications:
+
+Name                                                  Version InstallDate
+----                                                  ------- -----------
+SAS Enterprise Guide 8.3 (32-bit) - es Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit)                     8.3.0   20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ar Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - fr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - de Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ko Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - it Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hant Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ru Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - hu Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - pl Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - he Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - zh-Hans Resources 8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - tr Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - sv Resources      8.3.148 20240318   
+SAS Enterprise Guide 8.3 (32-bit) - ja Resources      8.3.148 20240318   
+
+
+
+.NET Component: Microsoft .NET Runtime - 8.0.15 (x86) (Installed: 20250409)
+    Related applications:
+
+Name                                             Version          InstallDate
+----                                             -------          -----------
+Office 16 Click-to-Run Extensibility Component   16.0.18526.20264 20250409   
+Office 16 Click-to-Run Licensing Component       16.0.18526.20264 20250409   
+Microsoft Windows Desktop Runtime - 8.0.15 (x86) 64.60.31203      20250409   
+
+
+
 
 ===== Method 6: global.json Files (SDK Version Pinning) =====
 No global.json files found
 
 ===== SUMMARY: .NET Versions and Impact Analysis =====
 Installed .NET SDK Versions:
+6.0.427
+8.0.402
 Potential Impact Analysis:
 - Applications that may require specific .NET versions:
+  * Data Interoperability for ArcGIS Pro (Version: 3.3.52635)
+  * ArcGIS Pro (Version: 3.3.52636)
+  * Microsoft Visual Studio Tools for Applications 2019 x64 Hosting Support (Version: 16.0.31110)
+  * Microsoft OLE DB Driver for SQL Server (Version: 18.6.7.0)
+  * Microsoft Visual Studio Tools for Applications 2019 x86 Hosting Support (Version: 16.0.31110)
+  * Microsoft Azure CLI (64-bit) (Version: 2.58.0)
+  * ArcGIS Desktop 10.8.1 (Version: 10.8.14362)
+  * Microsoft ODBC Driver 17 for SQL Server (Version: 17.10.5.1)
+  * Microsoft Azure CLI (32-bit) (Version: 2.70.0)
+  * SQL Server Management Studio Language Pack - English (Version: 19.3.4.0)
 - Impact of updating .NET SDK:
   * .NET applications may require recompilation
   * Visual Studio projects may need targeting updates
