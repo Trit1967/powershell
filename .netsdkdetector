@@ -1,0 +1,163 @@
+# .NET SDK and Application Detection Script
+# Creates a report of .NET components and associated applications
+
+$outputPath = "C:\temp\DotNetReport.txt"
+
+# Create the temp directory if it doesn't exist
+if (-not (Test-Path "C:\temp")) {
+    New-Item -Path "C:\temp" -ItemType Directory | Out-Null
+}
+
+# Start with a clean output file
+"===== .NET SDK and Application Detection Report =====" | Out-File -FilePath $outputPath
+"Generated on: $(Get-Date)" | Out-File -FilePath $outputPath -Append
+"" | Out-File -FilePath $outputPath -Append
+
+# Function to add a section header
+function Add-Section {
+    param ([string]$title)
+    "" | Out-File -FilePath $outputPath -Append
+    "===== $title =====" | Out-File -FilePath $outputPath -Append
+}
+
+# Method 1: dotnet CLI detection
+Add-Section "Method 1: dotnet CLI Information"
+try {
+    $dotnetInfo = dotnet --info
+    $dotnetInfo | Out-File -FilePath $outputPath -Append
+} catch {
+    "Error running dotnet CLI: $_" | Out-File -FilePath $outputPath -Append
+}
+
+# Method 2: Installed programs
+Add-Section "Method 2: Installed .NET Components (Programs and Features)"
+try {
+    Get-WmiObject -Class Win32_Product | 
+        Where-Object {$_.Name -like "*NET*" -or $_.Name -like "*Visual Studio*"} | 
+        Select-Object Name, Version, InstallDate | 
+        Format-Table -AutoSize | 
+        Out-String -Width 4096 | 
+        Out-File -FilePath $outputPath -Append
+} catch {
+    "Error retrieving installed .NET components: $_" | Out-File -FilePath $outputPath -Append
+}
+
+# Method 3: SDK Folders
+Add-Section "Method 3: .NET SDK Directories"
+try {
+    if (Test-Path "$env:ProgramFiles\dotnet\sdk") {
+        Get-ChildItem -Path "$env:ProgramFiles\dotnet\sdk" -Directory | 
+            Select-Object Name, LastWriteTime | 
+            Format-Table -AutoSize | 
+            Out-String | 
+            Out-File -FilePath $outputPath -Append
+    } else {
+        "No .NET SDK directory found in Program Files" | Out-File -FilePath $outputPath -Append
+    }
+} catch {
+    "Error checking SDK directories: $_" | Out-File -FilePath $outputPath -Append
+}
+
+# Method 4: Registry for .NET Framework
+Add-Section "Method 4: .NET Framework Registry Entries"
+try {
+    Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -Recurse -ErrorAction SilentlyContinue | 
+        Get-ItemProperty -Name Version -ErrorAction SilentlyContinue | 
+        Select-Object PSChildName, Version | 
+        Format-Table -AutoSize | 
+        Out-String | 
+        Out-File -FilePath $outputPath -Append
+} catch {
+    "Error checking .NET Framework registry: $_" | Out-File -FilePath $outputPath -Append
+}
+
+# Method 5: Apps with probable .NET dependencies
+Add-Section "Method 5: Applications Likely Using .NET"
+try {
+    # Get all installed applications
+    $allApps = Get-WmiObject -Class Win32_Product | Select-Object Name, Version, InstallDate
+    
+    # Identify apps that likely use .NET (Visual Studio, dev tools, etc.)
+    $netDependentApps = $allApps | Where-Object {
+        $_.Name -like "*Visual Studio*" -or
+        $_.Name -like "*Azure*" -or
+        $_.Name -like "*SQL Server*" -or
+        $_.Name -like "*ArcGIS*" -or
+        $_.Name -like "*WPF*" -or
+        $_.Name -like "*PowerBI*" -or
+        $_.Name -like "*Xamarin*"
+    }
+    
+    $netDependentApps | Format-Table -AutoSize | Out-String -Width 4096 | Out-File -FilePath $outputPath -Append
+    
+    # Add apps installed around the same time as .NET components
+    Add-Section "Applications Installed Around Same Time as .NET Components"
+    $netComponents = Get-WmiObject -Class Win32_Product | 
+        Where-Object {$_.Name -like "*NET*"} | 
+        Select-Object Name, InstallDate
+    
+    foreach ($component in $netComponents) {
+        # Get the component's install date
+        $installDate = $component.InstallDate
+        
+        # Find apps installed within 1 day of this component
+        $relatedApps = $allApps | Where-Object {
+            $_.InstallDate -ge ([DateTime]::ParseExact($installDate, "yyyyMMdd", $null).AddDays(-1).ToString("yyyyMMdd")) -and
+            $_.InstallDate -le ([DateTime]::ParseExact($installDate, "yyyyMMdd", $null).AddDays(1).ToString("yyyyMMdd")) -and
+            $_.Name -notlike "*NET*"
+        }
+        
+        if ($relatedApps) {
+            ".NET Component: $($component.Name) (Installed: $installDate)" | Out-File -FilePath $outputPath -Append
+            "    Related applications:" | Out-File -FilePath $outputPath -Append
+            $relatedApps | Format-Table -AutoSize | Out-String -Width 4096 | Out-File -FilePath $outputPath -Append
+        }
+    }
+} catch {
+    "Error identifying .NET-dependent applications: $_" | Out-File -FilePath $outputPath -Append
+}
+
+# Method 6: Check for global.json files
+Add-Section "Method 6: global.json Files (SDK Version Pinning)"
+try {
+    $globalJsonFiles = Get-ChildItem -Path "$env:USERPROFILE" -Include "global.json" -Recurse -ErrorAction SilentlyContinue
+    if ($globalJsonFiles) {
+        "Found global.json files:" | Out-File -FilePath $outputPath -Append
+        foreach ($file in $globalJsonFiles) {
+            "Path: $($file.FullName)" | Out-File -FilePath $outputPath -Append
+            "Content:" | Out-File -FilePath $outputPath -Append
+            Get-Content $file.FullName | Out-File -FilePath $outputPath -Append
+            "" | Out-File -FilePath $outputPath -Append
+        }
+    } else {
+        "No global.json files found" | Out-File -FilePath $outputPath -Append
+    }
+} catch {
+    "Error searching for global.json files: $_" | Out-File -FilePath $outputPath -Append
+}
+
+# Summary
+Add-Section "SUMMARY: .NET Versions and Impact Analysis"
+try {
+    $sdkVersions = Get-ChildItem -Path "$env:ProgramFiles\dotnet\sdk" -Directory -ErrorAction SilentlyContinue | 
+        Select-Object -ExpandProperty Name
+    
+    "Installed .NET SDK Versions:" | Out-File -FilePath $outputPath -Append
+    $sdkVersions | Out-File -FilePath $outputPath -Append
+    
+    "Potential Impact Analysis:" | Out-File -FilePath $outputPath -Append
+    "- Applications that may require specific .NET versions:" | Out-File -FilePath $outputPath -Append
+    $netDependentApps | Select-Object -First 10 | ForEach-Object {
+        "  * $($_.Name) (Version: $($_.Version))" | Out-File -FilePath $outputPath -Append
+    }
+    
+    "- Impact of updating .NET SDK:" | Out-File -FilePath $outputPath -Append
+    "  * .NET applications may require recompilation" | Out-File -FilePath $outputPath -Append
+    "  * Visual Studio projects may need targeting updates" | Out-File -FilePath $outputPath -Append
+    "  * Deployed applications will continue to use their runtime version" | Out-File -FilePath $outputPath -Append
+    "  * Legacy applications using older .NET frameworks should not be affected" | Out-File -FilePath $outputPath -Append
+} catch {
+    "Error generating summary: $_" | Out-File -FilePath $outputPath -Append
+}
+
+"Report complete. Saved to: $outputPath" | Write-Host
