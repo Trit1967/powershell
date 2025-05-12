@@ -1,5 +1,6 @@
+
 ===== .NET SDK and Application Detection Report =====
-Generated on: 05/12/2025 14:44:21
+Generated on: 05/12/2025 14:59:12
 
 
 ===== Method 1: dotnet CLI Information =====
@@ -14,11 +15,9 @@ Host:
   No SDKs were found.
 
 .NET runtimes installed:
-  Microsoft.AspNetCore.App 5.0.17 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
   Microsoft.AspNetCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
   Microsoft.AspNetCore.App 8.0.15 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
   Microsoft.AspNetCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
-  Microsoft.NETCore.App 5.0.17 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
   Microsoft.NETCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
   Microsoft.NETCore.App 8.0.15 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
   Microsoft.NETCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
@@ -45,7 +44,6 @@ Name                                                 Version      InstallDate
 ----                                                 -------      -----------
 Microsoft .NET Runtime - 9.0.4 (x86)                 72.16.31125  20250409   
 Microsoft .NET Host - 9.0.4 (x86)                    72.16.31125  20250409   
-Microsoft .NET Host FX Resolver - 5.0.17 (x64)       40.68.31213  20230919   
 Microsoft .NET Host FX Resolver - 7.0.20 (x86)       56.80.15184  20240606   
 Microsoft .NET Host FX Resolver - 9.0.4 (x86)        72.16.31125  20250409   
 Microsoft .NET Runtime - 8.0.15 (x64)                64.60.31149  20250409   
@@ -54,32 +52,24 @@ Microsoft .NET Host FX Resolver - 8.0.15 (x86)       64.60.31149  20250409
 Microsoft .NET Host - 9.0.4 (x64)                    72.16.31125  20250409   
 Microsoft .NET Host FX Resolver - 8.0.15 (x64)       64.60.31149  20250409   
 Microsoft ASP.NET Core Module V2                     19.0.25073.0 20250409   
-Microsoft ASP.NET Core 5.0.17 Hosting Bundle Options 5.0.17.22215 20230919   
 Microsoft ASP.NET Core 8.0.15 Shared Framework (x64) 8.0.15.25165 20250409   
-Microsoft .NET Runtime - 5.0.17 (x64)                40.68.31213  20230919   
 Microsoft .NET Host - 8.0.15 (x64)                   64.60.31149  20250409   
 Microsoft ASP.NET Core 9.0.4 Hosting Bundle Options  9.0.4.25164  20250409   
 Microsoft ASP.NET Core 7.0.20 Shared Framework (x64) 7.0.20.24269 20240606   
 Microsoft ASP.NET Core 7.0.20 Shared Framework (x86) 7.0.20.24269 20240606   
-Microsoft .NET Host - 5.0.17 (x86)                   40.68.31213  20230919   
 Microsoft .NET Runtime - 7.0.20 (x64)                56.80.15184  20240606   
-Microsoft .NET Runtime - 5.0.17 (x86)                40.68.31213  20230919   
 Microsoft .NET Host - 7.0.20 (x86)                   56.80.15184  20240606   
 Microsoft .NET Host - 7.0.20 (x64)                   56.80.15184  20240606   
 Microsoft .NET Host - 8.0.15 (x86)                   64.60.31149  20250409   
-Microsoft .NET Host FX Resolver - 5.0.17 (x86)       40.68.31213  20230919   
 Microsoft .NET Runtime - 9.0.4 (x64)                 72.16.31125  20250409   
 Microsoft .NET Host FX Resolver - 9.0.4 (x64)        72.16.31125  20250409   
 Microsoft .NET Runtime - 7.0.20 (x86)                56.80.15184  20240606   
 Microsoft ASP.NET Core 8.0.15 Hosting Bundle Options 8.0.15.25165 20250409   
-Microsoft ASP.NET Core 5.0.17 Shared Framework (x86) 5.0.17.22215 20230919   
-Microsoft .NET Host - 5.0.17 (x64)                   40.68.31213  20230919   
 Microsoft ASP.NET Core 9.0.4 Shared Framework (x64)  9.0.4.25164  20250409   
 Microsoft ASP.NET Core 9.0.4 Shared Framework (x86)  9.0.4.25164  20250409   
 Microsoft .NET Host FX Resolver - 7.0.20 (x64)       56.80.15184  20240606   
 Microsoft .NET Runtime - 8.0.15 (x86)                64.60.31149  20250409   
 Microsoft ASP.NET Core 7.0.20 Hosting Bundle Options 7.0.20.24269 20240606   
-Microsoft ASP.NET Core 5.0.17 Shared Framework (x64) 5.0.17.22215 20230919   
 
 
 
@@ -102,114 +92,8 @@ Client      4.0.0.0
 
 ===== Method 5: Applications Likely Using .NET =====
 
-Name                         Version InstallDate
-----                         ------- -----------
-Microsoft Azure CLI (64-bit) 2.55.0  20231211   
-Microsoft Azure CLI (32-bit) 2.70.0  20250328   
-
-
-
 
 ===== Applications Installed Around Same Time as .NET Components =====
-.NET Component: Microsoft .NET Host FX Resolver - 5.0.17 (x64) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft ASP.NET Core 5.0.17 Hosting Bundle Options (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft .NET Runtime - 5.0.17 (x64) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft .NET Host - 5.0.17 (x86) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft .NET Runtime - 5.0.17 (x86) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft .NET Host FX Resolver - 5.0.17 (x86) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft ASP.NET Core 5.0.17 Shared Framework (x86) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft .NET Host - 5.0.17 (x64) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
-.NET Component: Microsoft ASP.NET Core 5.0.17 Shared Framework (x64) (Installed: 20230919)
-    Related applications:
-
-Name                      Version   InstallDate
-----                      -------   -----------
-IIS URL Rewrite Module 2  7.2.1993  20230919   
-Microsoft IIS Compression 1.0.06502 20230919   
-Microsoft Web Deploy 3.6  10.0.1973 20230919   
-
-
-
 
 ===== Method 6: global.json Files (SDK Version Pinning) =====
 No global.json files found
@@ -218,8 +102,6 @@ No global.json files found
 Installed .NET SDK Versions:
 Potential Impact Analysis:
 - Applications that may require specific .NET versions:
-  * Microsoft Azure CLI (64-bit) (Version: 2.55.0)
-  * Microsoft Azure CLI (32-bit) (Version: 2.70.0)
 - Impact of updating .NET SDK:
   * .NET applications may require recompilation
   * Visual Studio projects may need targeting updates
