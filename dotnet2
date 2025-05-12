@@ -1,0 +1,324 @@
+
+
+===== .NET SDK and Application Detection Report =====
+Generated on: 05/12/2025 11:48:27
+
+
+===== Method 1: dotnet CLI Information =====
+.NET SDK:
+ Version:           8.0.403
+ Commit:            c64aa40a71
+ Workload version:  8.0.400-manifests.e99c892e
+ MSBuild version:   17.11.9+a69bbaaf5
+
+Runtime Environment:
+ OS Name:     Windows
+ OS Version:  10.0.22631
+ OS Platform: Windows
+ RID:         win-x64
+ Base Path:   C:\Program Files\dotnet\sdk\8.0.403\
+
+.NET workloads installed:
+Configured to use loose manifests when installing new manifests.
+ [aspire]
+   Installation Source: VS 17.11.35327.3
+   Manifest Version:    8.1.0/8.0.100
+   Manifest Path:       C:\Program Files\dotnet\sdk-manifests\8.0.100\microsoft.net.sdk.aspire\8.1.0\WorkloadManifest.json
+   Install Type:        FileBased
+
+
+Host:
+  Version:      9.0.4
+  Architecture: x64
+  Commit:       f57e6dc747
+
+.NET SDKs installed:
+  8.0.403 [C:\Program Files\dotnet\sdk]
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 8.0.10 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 7.0.20 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 8.0.10 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.WindowsDesktop.App 8.0.10 [C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+
+===== Method 2: Installed .NET Components (Programs and Features) =====
+
+Name                                                                          Version         InstallDate
+----                                                                          -------         -----------
+Microsoft .NET Host FX Resolver - 8.0.10 (x86)                                64.40.21578     20241108   
+ClickOnce Bootstrapper Package for Microsoft .NET Framework                   4.8.09256       20241108   
+Microsoft.NET.Sdk.Maui.Manifest-8.0.100 (x64)                                 8.0.82          20241108   
+Microsoft .NET Runtime - 9.0.4 (x86)                                          72.16.31125     20250409   
+Microsoft Visual Studio Setup WMI Provider                                    3.11.2133.16870 20241108   
+Microsoft .NET Host - 9.0.4 (x86)                                             72.16.31125     20250409   
+Microsoft .NET Framework 4.8 Targeting Pack                                   4.8.03761       20241108   
+Microsoft.NET.Workload.Mono.Toolchain.Current.Manifest (x64)                  64.40.21578     20241108   
+Microsoft .NET Runtime - 8.0.10 (x64)                                         64.40.21578     20241108   
+Microsoft Visual Studio Tools for Applications 2019 x64 Hosting Support       16.0.31110      20241108   
+Microsoft .NET Host FX Resolver - 7.0.20 (x86)                                56.80.15184     20241108   
+Microsoft .NET Host FX Resolver - 9.0.4 (x86)                                 72.16.31125     20250409   
+Microsoft .NET Framework 4.7.2 Targeting Pack (ENU)                           4.7.03062       20241108   
+Microsoft ASP.NET Core Module for IIS Express                                 12.2.18292.0    20241108   
+Microsoft Visual Studio Tools for Applications 2019 x86 Hosting Support       16.0.31110      20241108   
+Microsoft Azure Libraries for .NET – v2.9                                     3.0.2404.2502   20241108   
+Microsoft.NET.Sdk.Android.Manifest-8.0.100 (x64)                              34.0.113        20241108   
+Microsoft .NET AppHost Pack - 8.0.10 (x64_arm64)                              64.40.21578     20241108   
+Microsoft .NET Framework 4.8 SDK                                              4.8.03928       20241108   
+Microsoft.NET.Sdk.MacCatalyst.Manifest-8.0.100 (x64)                          18.0.8303       20241108   
+Microsoft .NET Host FX Resolver - 8.0.15 (x86)                                64.60.31149     20250409   
+Microsoft .NET Host - 8.0.10 (x64)                                            64.40.21578     20241108   
+Microsoft .NET Framework 4.8 Targeting Pack (ENU)                             4.8.03761       20241108   
+Microsoft ASP.NET Core 8.0.10 Shared Framework (x64)                          8.0.10.24468    20241108   
+Microsoft.NET.Sdk.Aspire.Manifest-8.0.100 (x64)                               64.64.18482     20241108   
+Microsoft .NET Host - 9.0.4 (x64)                                             72.16.31125     20250409   
+Microsoft .NET 8.0 Templates 8.0.403 (x64)                                    32.10.55893     20241108   
+Microsoft .NET Targeting Pack - 8.0.10 (x86)                                  64.40.21578     20241108   
+Microsoft.NET.Workload.Emscripten.net6.Manifest (x64)                         64.40.21345     20241108   
+Microsoft ASP.NET Core Module V2 for IIS Express                              17.0.22116.0    20241108   
+Microsoft NetStandard SDK                                                     15.0.51105      20241108   
+vs_networkemulationmsi_x64                                                    17.11.35102     20241108   
+Microsoft ASP.NET Core 8.0.10 Targeting Pack (x86)                            8.0.10.24468    20241108   
+Cisco Secure Client - Network Access Manager                                  5.1.4.74        20241107   
+Microsoft ASP.NET Core 9.0.4 Hosting Bundle Options                           9.0.4.25164     20250409   
+Microsoft ASP.NET Core 7.0.20 Shared Framework (x64)                          7.0.20.24269    20241108   
+Microsoft.NET.Sdk.macOS.Manifest-8.0.100 (x64)                                15.0.8303       20241108   
+Microsoft ASP.NET Core 7.0.20 Shared Framework (x86)                          7.0.20.24269    20241108   
+Visual Studio 2017 Isolated Shell for SSMS                                    15.0.28307.421  20241108   
+Microsoft ASP.NET Web Tools Packages 17.0 - ENU                               17.0.40305.0    20241108   
+Microsoft .NET Framework Cumulative Intellisense Pack for Visual Studio (ENU) 4.8.09037       20241108   
+Microsoft .NET Runtime - 7.0.20 (x64)                                         56.80.15184     20241108   
+Microsoft .NET AppHost Pack - 8.0.10 (x64_x86)                                64.40.21578     20241108   
+Microsoft .NET AppHost Pack - 8.0.10 (x64)                                    64.40.21578     20241108   
+Microsoft .NET Host - 7.0.20 (x86)                                            56.80.15184     20241108   
+Microsoft .NET Host - 7.0.20 (x64)                                            56.80.15184     20241108   
+Microsoft .NET Host - 8.0.15 (x86)                                            64.60.31149     20250409   
+Microsoft .NET Runtime - 9.0.4 (x64)                                          72.16.31125     20250409   
+Microsoft .NET Standard Targeting Pack - 2.1.0 (x64)                          24.0.28113      20241108   
+Microsoft.NET.Sdk.iOS.Manifest-8.0.100 (x64)                                  18.0.8303       20241108   
+Microsoft Visual Studio Setup Configuration                                   3.11.2133.16870 20241108   
+Microsoft ASP.NET Core 8.0.10 Shared Framework (x86)                          8.0.10.24468    20241108   
+Microsoft .NET Host FX Resolver - 9.0.4 (x64)                                 72.16.31125     20250409   
+Microsoft .NET Runtime - 7.0.20 (x86)                                         56.80.15184     20241108   
+Entity Framework 6.2.0 Tools  for Visual Studio 2022                          6.2.0.0         20241108   
+Microsoft.NET.Workload.Emscripten.Current.Manifest (x64)                      64.40.21345     20241108   
+Microsoft .NET Targeting Pack - 8.0.10 (x64)                                  64.40.21578     20241108   
+Microsoft .NET Toolset 8.0.403 (x64)                                          32.8.55893      20241108   
+Microsoft ASP.NET Diagnostic Pack for Visual Studio                           17.11.231.19466 20241108   
+Microsoft.NET.Sdk.tvOS.Manifest-8.0.100 (x64)                                 18.0.8303       20241108   
+Microsoft ASP.NET Core 8.0.10 Targeting Pack (x64)                            8.0.10.24468    20241108   
+Microsoft .NET Framework 4.7.2 Targeting Pack                                 4.7.03062       20241108   
+Microsoft .NET Host FX Resolver - 8.0.10 (x64)                                64.40.21578     20241108   
+Microsoft .NET SDK 8.0.403 (x64) from Visual Studio                           8.4.324.47413   20241108   
+Microsoft ASP.NET Core 9.0.4 Shared Framework (x64)                           9.0.4.25164     20250409   
+Microsoft ASP.NET Core 9.0.4 Shared Framework (x86)                           9.0.4.25164     20250409   
+Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest (x64)                     64.40.21578     20241108   
+Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest (x64)                     64.40.21578     20241108   
+Microsoft.NET.Workload.Emscripten.net7.Manifest (x64)                         64.40.21345     20241108   
+Microsoft .NET Host FX Resolver - 7.0.20 (x64)                                56.80.15184     20241108   
+Microsoft .NET Runtime - 8.0.10 (x86)                                         64.40.21578     20241108   
+Microsoft .NET Runtime - 8.0.15 (x86)                                         64.60.31149     20250409   
+Microsoft ASP.NET Core 7.0.20 Hosting Bundle Options                          7.0.20.24269    20241108   
+
+
+
+
+===== Method 3: .NET SDK Directories =====
+
+Name    LastWriteTime       
+----    -------------       
+8.0.403 11/8/2024 2:03:46 PM
+
+
+
+
+===== Method 4: .NET Framework Registry Entries =====
+
+PSChildName Version  
+----------- -------  
+Client      4.8.09032
+1033        4.8.09032
+Full        4.8.09032
+1033        4.8.09032
+Client      4.0.0.0  
+
+
+
+
+===== Method 5: Applications Likely Using .NET =====
+
+Name                                                                          Version         InstallDate
+----                                                                          -------         -----------
+SQL Server 2022 XEvent                                                        16.0.1000.6     20241108   
+Microsoft Visual Studio Setup WMI Provider                                    3.11.2133.16870 20241108   
+SQL Server 2022 Shared Management Objects                                     16.0.1000.6     20241108   
+SQL Server 2022 Database Engine Shared                                        16.0.1000.6     20241108   
+SQL Server 2022 Connection Info                                               16.0.1000.6     20241108   
+Microsoft OLE DB Driver for SQL Server                                        18.7.4.0        20241108   
+Microsoft Azure Authoring Tools - v2.9.7                                      2.9.8999.45     20241108   
+SQL Server 2022 Connection Info                                               16.0.1000.6     20241108   
+Microsoft Visual Studio Tools for Applications 2019 x64 Hosting Support       16.0.31110      20241108   
+Microsoft Visual Studio Tools for Applications 2019 x86 Hosting Support       16.0.31110      20241108   
+Microsoft Azure Libraries for .NET – v2.9                                     3.0.2404.2502   20241108   
+SQL Server 2022 Common Files                                                  16.0.1000.6     20241108   
+SQL Server 2022 Shared Management Objects Extensions                          16.0.1000.6     20241108   
+SQL Server 2022 Database Engine Services                                      16.0.1000.6     20241108   
+Browser for SQL Server 2022                                                   16.0.1000.6     20241108   
+SQL Server 2022 DMF                                                           16.0.1000.6     20241108   
+Microsoft Command Line Utilities 15 for SQL Server                            15.0.1300.359   20241108   
+SQL Server 2022 Database Engine Shared                                        16.0.1000.6     20241108   
+SQL Server 2022 SQL Diagnostics                                               16.0.1000.6     20241108   
+Microsoft SQL Server 2019 LocalDB                                             15.0.4382.1     20241108   
+Microsoft VSS Writer for SQL Server 2022                                      16.0.1000.6     20241108   
+SQL Server Management Studio Language Pack - English                          20.2.30.0       20241108   
+SQL Server 2022 Batch Parser                                                  16.0.1000.6     20241108   
+SQL Server 2022 XEvent                                                        16.0.1000.6     20241108   
+Microsoft Azure PowerShell - April 2018                                       5.7.0.18831     20241108   
+Microsoft SQL Server 2022 RsFx Driver                                         16.0.1000.6     20241108   
+Visual Studio 2017 Isolated Shell for SSMS                                    15.0.28307.421  20241108   
+Microsoft .NET Framework Cumulative Intellisense Pack for Visual Studio (ENU) 4.8.09037       20241108   
+SQL Server Management Studio                                                  20.2.30.0       20241108   
+SQL Server 2022 Shared Management Objects                                     16.0.1000.6     20241108   
+SQL Server 2022 Shared Management Objects Extensions                          16.0.1000.6     20241108   
+Microsoft SQL Server 2022 Setup (English)                                     16.0.1000.6     20241108   
+Microsoft System CLR Types for SQL Server 2019                                15.0.2000.5     20241108   
+Microsoft Visual Studio Setup Configuration                                   3.11.2133.16870 20241108   
+SQL Server 2022 Common Files                                                  16.0.1000.6     20241108   
+Microsoft Azure Compute Emulator - v2.9.7                                     2.9.8999.43     20241108   
+SQL Server 2022 Database Engine Services                                      16.0.1000.6     20241108   
+Microsoft ODBC Driver 17 for SQL Server                                       17.10.6.1       20241108   
+Entity Framework 6.2.0 Tools  for Visual Studio 2022                          6.2.0.0         20241108   
+Microsoft ASP.NET Diagnostic Pack for Visual Studio                           17.11.231.19466 20241108   
+Microsoft .NET SDK 8.0.403 (x64) from Visual Studio                           8.4.324.47413   20241108   
+SQL Server 2022 DMF                                                           16.0.1000.6     20241108   
+
+
+
+
+
+
+.NET Component: Microsoft ASP.NET Core 7.0.20 Shared Framework (x86) (Installed: 20241108)
+    Related applications:
+
+Name                                                                    Version         InstallDate
+----                                                                    -------         -----------
+Microsoft Windows Desktop Targeting Pack - 8.0.10 (x86)                 64.40.21605     20241108   
+Microsoft Windows Desktop Runtime - 8.0.10 (x64)                        64.40.21605     20241108   
+SQL Server 2022 XEvent                                                  16.0.1000.6     20241108   
+BeyondTrust Remote Support Virtual Smart Card Customer                  1.2.6.1         20241107   
+Microsoft Visual Studio Setup WMI Provider                              3.11.2133.16870 20241108   
+SQL Server 2022 Shared Management Objects                               16.0.1000.6     20241108   
+vs_communitysharedmsi                                                   17.11.35103     20241108   
+Citrix Workspace Inside                                                 24.2.1001.1     20241108   
+Citrix Workspace(SSON)                                                  24.2.1001.3     20241108   
+vs_minshellx64msi                                                       17.11.35102     20241108   
+BCR Plug-in                                                             24.2.1000.16    20241108   
+SQL Server 2022 Database Engine Shared                                  16.0.1000.6     20241108   
+vs_communityx64msi                                                      17.11.35103     20241108   
+vs_codecoveragemsi                                                      17.11.35102     20241108   
+SQL Server 2022 Connection Info                                         16.0.1000.6     20241108   
+Microsoft Analysis Services OLE DB Provider                             16.0.5143.0     20241108   
+Microsoft OLE DB Driver for SQL Server                                  18.7.4.0        20241108   
+IntelliTraceProfilerProxy                                               15.0.21225.01   20241108   
+Microsoft Azure Authoring Tools - v2.9.7                                2.9.8999.45     20241108   
+SQL Server 2022 Connection Info                                         16.0.1000.6     20241108   
+Microsoft Visual Studio Tools for Applications 2019 x64 Hosting Support 16.0.31110      20241108   
+vs_communitymsires                                                      17.11.35103     20241108   
+vs_githubprotocolhandlermsi                                             17.11.35102     20241108   
+VS Script Debugging Common                                              17.0.157.0      20241108   
+Microsoft Web Deploy 4.0                                                10.0.8305       20241108   
+DiagnosticsHub_CollectionService                                        17.11.35317     20241108   
+vs_SQLClickOnceBootstrappermsi                                          17.11.35102     20241108   
+Microsoft Visual Studio Tools for Applications 2019 x86 Hosting Support 16.0.31110      20241108   
+SQL Server 2022 Common Files                                            16.0.1000.6     20241108   
+Aspire.ProjectTemplates (x64)                                           8.1.0.0         20241108   
+vs_clickoncebootstrappermsi                                             17.11.35103     20241108   
+Cisco Secure Client - AnyConnect VPN                                    5.1.4.74        20241107   
+SQL Server 2022 Shared Management Objects Extensions                    16.0.1000.6     20241108   
+icecap_collection_x64                                                   17.11.35102     20241108   
+SQL Server 2022 Database Engine Services                                16.0.1000.6     20241108   
+MTOP Client                                                             24.2.1000.16    20241108   
+Microsoft Analysis Services OLE DB Provider                             16.0.5143.0     20241108   
+Browser for SQL Server 2022                                             16.0.1000.6     20241108   
+vs_filehandler_x86                                                      17.11.35102     20241108   
+Microsoft Help Viewer 2.3                                               2.3.28307       20241108   
+Aspire.Hosting.Orchestration.win-x64 (x64)                              8.1.0.0         20241108   
+IIS 10.0 Express                                                        10.0.08608      20241108   
+vs_minshellinteropsharedmsi                                             17.11.35102     20241108   
+SQL Server 2022 DMF                                                     16.0.1000.6     20241108   
+Microsoft Windows Desktop Runtime - 8.0.10 (x86)                        64.40.21605     20241108   
+vs_vswebprotocolselectormsi                                             17.11.35102     20241108   
+AppProtection                                                           24.2.2011.1     20241108   
+Microsoft Command Line Utilities 15 for SQL Server                      15.0.1300.359   20241108   
+SQL Server 2022 Database Engine Shared                                  16.0.1000.6     20241108   
+SQL Server 2022 SQL Diagnostics                                         16.0.1000.6     20241108   
+Microsoft SQL Server 2019 LocalDB                                       15.0.4382.1     20241108   
+Microsoft VSS Writer for SQL Server 2022                                16.0.1000.6     20241108   
+SQL Server Management Studio Language Pack - English                    20.2.30.0       20241108   
+IntelliTraceProfilerProxy                                               15.0.21225.01   20241108   
+SQL Server 2022 Batch Parser                                            16.0.1000.6     20241108   
+SQL Server 2022 XEvent                                                  16.0.1000.6     20241108   
+icecap_collectionresourcesx64                                           17.11.35102     20241108   
+Microsoft Azure PowerShell - April 2018                                 5.7.0.18831     20241108   
+Microsoft SQL Server 2022 RsFx Driver                                   16.0.1000.6     20241108   
+Visual Studio 2017 Isolated Shell for SSMS                              15.0.28307.421  20241108   
+VS JIT Debugger                                                         17.0.157.0      20241108   
+vs_devenx64vmsi                                                         17.11.35102     20241108   
+vcpp_crt.redist.clickonce                                               14.40.33816     20241108   
+SQL Server Management Studio                                            20.2.30.0       20241108   
+VS Immersive Activate Helper                                            17.0.157.0      20241108   
+vs_minshellmsires                                                       17.11.35102     20241108   
+SQL Server 2022 Shared Management Objects                               16.0.1000.6     20241108   
+SQL Server 2022 Shared Management Objects Extensions                    16.0.1000.6     20241108   
+Microsoft TestPlatform SDK Local Feed                                   17.10.0.9037153 20241108   
+Citrix Authentication Manager                                           24.2.1000.1     20241108   
+Aspire.Hosting (x64)                                                    8.1.0.0         20241108   
+Microsoft SQL Server 2022 Setup (English)                               16.0.1000.6     20241108   
+vs_FileTracker_Singleton                                                17.11.35102     20241108   
+Microsoft System CLR Types for SQL Server 2019                          15.0.2000.5     20241108   
+icecap_collection_neutral                                               17.11.35103     20241108   
+Microsoft Visual Studio Setup Configuration                             3.11.2133.16870 20241108   
+SQL Server 2022 Common Files                                            16.0.1000.6     20241108   
+Microsoft Azure Compute Emulator - v2.9.7                               2.9.8999.43     20241108   
+Aspire.Hosting.Sdk (x64)                                                8.1.0.0         20241108   
+Aspire.Dashboard.Sdk.win-x64 (x64)                                      8.1.0.0         20241108   
+SQL Server 2022 Database Engine Services                                16.0.1000.6     20241108   
+Microsoft ODBC Driver 17 for SQL Server                                 17.10.6.1       20241108   
+Entity Framework 6.2.0 Tools  for Visual Studio 2022                    6.2.0.0         20241108   
+vs_devenvsharedmsi                                                      17.11.35102     20241108   
+vs_filehandler_amd64                                                    17.11.35102     20241108   
+BSEE - CC 6.4                                                           1.0.0000        20241107   
+vs_tipsmsi                                                              17.11.35102     20241108   
+vs_CoreEditorFonts                                                      17.7.40001      20241108   
+Citrix Workspace(DV)                                                    24.2.1000.16    20241108   
+icecap_collectionresources                                              17.11.35103     20241108   
+SQL Server 2022 DMF                                                     16.0.1000.6     20241108   
+BeyondTrust Remote Support Jump Client itsupport.usgs.gov               24.2.3          20241107   
+Integration Services                                                    16.0.5491.7     20241108   
+vs_clickoncesigntoolmsi                                                 17.11.35102     20241108   
+vs_minshellinteropx64msi                                                17.11.35102     20241108   
+SSMS Post Install Tasks                                                 20.2.30.0       20241108   
+Microsoft Windows Desktop Targeting Pack - 8.0.10 (x64)                 64.40.21605     20241108   
+vs_minshellsharedmsi                                                    17.11.35102     20241108   
+vs_BlendMsi                                                             17.11.35102     20241108   
+Online Plug-in                                                          24.2.1000.16    20241108   
+vs_clickoncebootstrappermsires                                          17.11.35102     20241108   
+
