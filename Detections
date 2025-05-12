@@ -1,0 +1,33 @@
+.NET SDK Version Detection Findings
+Versions Detected
+
+.NET SDK 8.0.402 (primary)
+.NET SDK 6.0.427 (secondary)
+.NET Runtime 9.0.4 (newer version)
+Multiple .NET runtimes (6.0.35, 8.0.8, 8.0.15, 9.0.4)
+
+Applications Affected
+
+ArcGIS Pro 3.3.52636 - Dependent on .NET 8.0.402, installed 2024-09-27
+Data Interoperability for ArcGIS - Dependent on .NET 8.0.402
+SAS Enterprise Guide 8.3 - Dependent on .NET 6.0.427, installed 2024-03-18
+SQL Server Management Studio 19.3.4.0 - Uses Visual Studio Shell components
+BeyondTrust Remote Support - Dependent on .NET 8.0 components
+Microsoft Azure CLI (32-bit and 64-bit versions)
+
+Remediation Steps
+
+For .NET 8.0.x updates: Test with ArcGIS Pro before deployment
+For .NET 6.0.x updates: Test with SAS Enterprise Guide before deployment
+Backup the environment before any updates
+Schedule updates during maintenance windows
+Prepare rollback plans for critical applications
+No global.json files found (positive: no hard version pinning)
+Most applications will continue to use their installed runtime version
+
+Detection Methods Used
+
+dotnet --info command
+Programs and Features listing
+Windows registry entries
+Installation date correlation
