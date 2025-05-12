@@ -1,0 +1,124 @@
+===== .NET SDK and Application Detection Report =====
+Generated on: 05/12/2025 14:29:09
+
+
+===== Method 1: dotnet CLI Information =====
+
+Host:
+  Version:      9.0.4
+  Architecture: x64
+  Commit:       f57e6dc747
+  RID:          win-x64
+
+.NET SDKs installed:
+  No SDKs were found.
+
+.NET runtimes installed:
+  Microsoft.AspNetCore.App 6.0.36 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 8.0.15 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.AspNetCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App]
+  Microsoft.NETCore.App 6.0.36 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 8.0.15 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+  Microsoft.NETCore.App 9.0.4 [C:\Program Files\dotnet\shared\Microsoft.NETCore.App]
+
+Other architectures found:
+  x86   [C:\Program Files (x86)\dotnet]
+    registered at [HKLM\SOFTWARE\dotnet\Setup\InstalledVersions\x86\InstallLocation]
+
+Environment variables:
+  Not set
+
+global.json file:
+  Not found
+
+Learn more:
+  https://aka.ms/dotnet/info
+
+Download .NET:
+  https://aka.ms/dotnet/download
+
+===== Method 2: Installed .NET Components (Programs and Features) =====
+
+Name                                                 Version      InstallDate
+----                                                 -------      -----------
+Microsoft .NET Runtime - 9.0.4 (x86)                 72.16.31125  20250409   
+Microsoft .NET Host - 9.0.4 (x86)                    72.16.31125  20250409   
+Microsoft .NET Runtime - 6.0.36 (x86)                48.144.23141 20241126   
+Microsoft .NET Host FX Resolver - 9.0.4 (x86)        72.16.31125  20250409   
+Microsoft ASP.NET Core 6.0.36 Hosting Bundle Options 6.0.36.24516 20241126   
+Microsoft .NET Runtime - 8.0.15 (x64)                64.60.31149  20250409   
+Microsoft ASP.NET Core 8.0.15 Shared Framework (x86) 8.0.15.25165 20250409   
+Microsoft .NET Host FX Resolver - 6.0.36 (x64)       48.144.23141 20241126   
+Microsoft .NET Host FX Resolver - 8.0.15 (x86)       64.60.31149  20250409   
+Microsoft ASP.NET Core 6.0.32 Shared Framework (x86) 6.0.32.24314 20240711   
+Microsoft .NET Host - 9.0.4 (x64)                    72.16.31125  20250409   
+Microsoft .NET Host FX Resolver - 8.0.15 (x64)       64.60.31149  20250409   
+Microsoft ASP.NET Core Module V2                     19.0.25073.0 20250409   
+Microsoft ASP.NET Core 8.0.15 Shared Framework (x64) 8.0.15.25165 20250409   
+Microsoft .NET Host - 6.0.36 (x64)                   48.144.23141 20241126   
+Microsoft .NET Host - 8.0.15 (x64)                   64.60.31149  20250409   
+Microsoft ASP.NET Core 9.0.4 Hosting Bundle Options  9.0.4.25164  20250409   
+Microsoft ASP.NET Core 6.0.36 Shared Framework (x86) 6.0.36.24516 20241126   
+Microsoft .NET Host - 8.0.15 (x86)                   64.60.31149  20250409   
+Microsoft .NET Host FX Resolver - 6.0.36 (x86)       48.144.23141 20241126   
+Microsoft .NET Runtime - 9.0.4 (x64)                 72.16.31125  20250409   
+Microsoft .NET Host FX Resolver - 9.0.4 (x64)        72.16.31125  20250409   
+Microsoft ASP.NET Core 8.0.15 Hosting Bundle Options 8.0.15.25165 20250409   
+Microsoft ASP.NET Core 6.0.36 Shared Framework (x64) 6.0.36.24516 20241126   
+Microsoft ASP.NET Core 9.0.4 Shared Framework (x64)  9.0.4.25164  20250409   
+Microsoft ASP.NET Core 9.0.4 Shared Framework (x86)  9.0.4.25164  20250409   
+Microsoft .NET Host - 6.0.36 (x86)                   48.144.23141 20241126   
+Microsoft .NET Runtime - 6.0.36 (x64)                48.144.23141 20241126   
+Microsoft .NET Runtime - 8.0.15 (x86)                64.60.31149  20250409   
+
+
+
+
+===== Method 3: .NET SDK Directories =====
+No .NET SDK directory found in Program Files
+
+===== Method 4: .NET Framework Registry Entries =====
+
+PSChildName Version  
+----------- -------  
+Client      4.8.03761
+1033        4.8.03761
+Full        4.8.03761
+1033        4.8.03761
+Client      4.0.0.0  
+
+
+
+
+===== Method 5: Applications Likely Using .NET =====
+
+Name                          Version    InstallDate
+----                          -------    -----------
+ArcGIS Web Adaptor (IIS) 11.3 11.3.51575 20241015   
+Microsoft Azure CLI (64-bit)  2.58.0     20240320   
+ArcGIS Web Adaptor (IIS) 11.3 11.3.51575 20241015   
+Microsoft Azure CLI (32-bit)  2.70.0     20250328   
+Portal for ArcGIS 11.3        11.3.51575 20250321   
+
+
+
+
+===== Applications Installed Around Same Time as .NET Components =====
+
+===== Method 6: global.json Files (SDK Version Pinning) =====
+No global.json files found
+
+===== SUMMARY: .NET Versions and Impact Analysis =====
+Installed .NET SDK Versions:
+Potential Impact Analysis:
+- Applications that may require specific .NET versions:
+  * ArcGIS Web Adaptor (IIS) 11.3 (Version: 11.3.51575)
+  * Microsoft Azure CLI (64-bit) (Version: 2.58.0)
+  * ArcGIS Web Adaptor (IIS) 11.3 (Version: 11.3.51575)
+  * Microsoft Azure CLI (32-bit) (Version: 2.70.0)
+  * Portal for ArcGIS 11.3 (Version: 11.3.51575)
+- Impact of updating .NET SDK:
+  * .NET applications may require recompilation
+  * Visual Studio projects may need targeting updates
+  * Deployed applications will continue to use their runtime version
+  * Legacy applications using older .NET frameworks should not be affected
