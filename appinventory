@@ -1,6 +1,6 @@
 
-# Test script to identify .NET 7 components WITHOUT uninstalling anything
-$logFile = "\\ionmazutil004\temp\DotNet7_TestMode_$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+# WHAT-IF script to identify the specific .NET 7.0.20 (x64) Runtime
+$logFile = "\\ionmazutil004\temp\DotNet7_WhatIf_$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
 $computerName = $env:COMPUTERNAME
 
 # Function to log messages
@@ -11,40 +11,100 @@ function Write-Log {
     Write-Host $message
 }
 
-Write-Log "TEST MODE: Identifying .NET 7 components on computer: $computerName"
-Write-Host "RUNNING IN TEST MODE - Nothing will be uninstalled" -ForegroundColor Yellow
+Write-Log "WHAT-IF MODE: Identifying .NET 7.0.20 (x64) Runtime on computer: $computerName"
+Write-Host "RUNNING IN WHAT-IF MODE - Nothing will be uninstalled" -ForegroundColor Yellow
 
 # Get all installed applications
 $installedApps = @()
 $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
 $installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
 
-# First, let's get ALL .NET components for comparison
-$allDotNetComponents = $installedApps | Where-Object { 
-    $_.DisplayName -match "\.NET" 
-} | Select-Object DisplayName, Publisher, InstallDate
+# Find the EXACT .NET 7.0.20 (x64) Runtime
+$targetRuntime = $installedApps | Where-Object { 
+    $_.DisplayName -eq "Microsoft .NET Runtime - 7.0.20 (x64)" 
+} | Select-Object DisplayName, UninstallString, Publisher, InstallDate
 
-Write-Log "All .NET components found on system ($($allDotNetComponents.Count) total):"
-foreach ($component in $allDotNetComponents) {
-    Write-Log "- $($component.DisplayName)"
+if ($targetRuntime) {
+    Write-Log "`nEXACTLY MATCHING TARGET FOUND:"
+    Write-Log "Display Name: $($targetRuntime.DisplayName)"
+    Write-Log "Publisher: $($targetRuntime.Publisher)"
+    Write-Log "Install Date: $($targetRuntime.InstallDate)"
+    
+    if ($targetRuntime.UninstallString) {
+        Write-Log "Uninstall String: $($targetRuntime.UninstallString)"
+        
+        # Extract product code from uninstall string
+        $productCode = $targetRuntime.UninstallString -replace '.*({[0-9A-F-]+}).*', '$1'
+        if ($productCode -match '{[0-9A-F-]+}') {
+            Write-Log "`nWHAT-IF: If you proceed with actual uninstallation, this command would run:"
+            Write-Log "msiexec.exe /x $productCode /qn"
+        }
+        else {
+            Write-Log "WARNING: Could not extract product code from uninstall string"
+        }
+    }
+    else {
+        Write-Log "WARNING: No uninstall string found for this component."
+    }
+    
+    # Generate real uninstall script
+    $realScriptPath = "\\ionmazutil004\temp\Uninstall_DotNet7_Runtime_$(Get-Date -Format 'yyyyMMdd-HHmmss').ps1"
+    $realScript = @"
+# Auto-generated script to uninstall Microsoft .NET Runtime - 7.0.20 (x64)
+# Generated on: $(Get-Date)
+# Computer: $computerName
+
+# Create log file
+`$logFile = "\\ionmazutil004\temp\DotNet7_Runtime_Uninstall_$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+
+# Function to log messages
+function Write-Log {
+    param([string]`$message)
+    `$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "`$timestamp - `$message" | Out-File -FilePath `$logFile -Append
+    Write-Host `$message
 }
 
-# Now target only the core .NET 7 components
-$coreDotNet7Components = $installedApps | Where-Object { 
-    $_.DisplayName -match "\.NET Runtime - 7\.0" -or 
-    $_.DisplayName -match "\.NET Host - 7\.0" -or
-    $_.DisplayName -match "\.NET Host FX Resolver - 7\.0" -or
-    $_.DisplayName -match "\.NET SDK 7\.0" -or
-    $_.DisplayName -match "ASP\.NET Core 7\.0.*Shared Framework"
-} | Select-Object DisplayName, UninstallString
+Write-Log "Starting .NET 7.0.20 (x64) Runtime uninstallation on computer: $computerName"
 
-Write-Log ""
-Write-Log "COMPONENTS THAT WOULD BE UNINSTALLED ($($coreDotNet7Components.Count) total):"
-foreach ($component in $coreDotNet7Components) {
-    Write-Log "- $($component.DisplayName)"
+# Uninstall the .NET 7.0.20 (x64) Runtime
+`$productCode = "$productCode"
+try {
+    Write-Log "Running: msiexec.exe /x `$productCode /qn"
+    Start-Process "msiexec.exe" -ArgumentList "/x `$productCode /qn" -Wait -NoNewWindow
+    Write-Log "Uninstallation completed for: Microsoft .NET Runtime - 7.0.20 (x64)"
+}
+catch {
+    Write-Log "ERROR: Failed to uninstall. Error: `$_"
 }
 
-Write-Log ""
-Write-Log "TEST COMPLETE: Review this log to verify only .NET 7 components would be affected."
-Write-Host "Test completed. Review log file for details: $logFile" -ForegroundColor Green
-Write-Host "If the results look correct, you can run the real uninstall script." -ForegroundColor Green
+Write-Log "Process completed."
+Write-Host "Process completed. See log file for details: `$logFile" -ForegroundColor Green
+"@
+    
+    # Save the real uninstall script but don't execute it
+    $realScript | Out-File -FilePath $realScriptPath -Force
+    Write-Log "`nA ready-to-use uninstall script has been generated at: $realScriptPath"
+    Write-Log "You can review and run this script if you want to proceed with the actual uninstallation."
+}
+else {
+    Write-Log "The specific target '.NET Runtime - 7.0.20 (x64)' was NOT found on this system."
+    
+    # Check for any .NET 7 Runtime as fallback
+    $anyDotNet7Runtime = $installedApps | Where-Object { 
+        $_.DisplayName -match "\.NET Runtime - 7\.0" 
+    } | Select-Object DisplayName, UninstallString
+    
+    if ($anyDotNet7Runtime) {
+        Write-Log "`nHowever, these .NET 7 Runtimes were found:"
+        foreach ($runtime in $anyDotNet7Runtime) {
+            Write-Log "- $($runtime.DisplayName)"
+        }
+    }
+    else {
+        Write-Log "No .NET 7 Runtime of any version was found on this system."
+    }
+}
+
+Write-Log "`nWHAT-IF analysis completed."
+Write-Host "WHAT-IF analysis completed. See log file for details: $logFile" -ForegroundColor Green
