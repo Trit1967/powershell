@@ -1,0 +1,86 @@
+# Script to uninstall the specific .NET 7.0.20 (x64) Runtime
+$logFile = "\\ionmazutil004\temp\DotNet7_Runtime_Uninstall_$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
+$computerName = $env:COMPUTERNAME
+
+# Function to log messages
+function Write-Log {
+    param([string]$message)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "$timestamp - $message" | Out-File -FilePath $logFile -Append
+    Write-Host $message
+}
+
+Write-Log "Starting .NET 7.0.20 (x64) Runtime uninstallation on computer: $computerName"
+
+# Get all installed applications
+$installedApps = @()
+$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+
+# Find the EXACT .NET 7.0.20 (x64) Runtime
+$targetRuntime = $installedApps | Where-Object { 
+    $_.DisplayName -eq "Microsoft .NET Runtime - 7.0.20 (x64)" 
+} | Select-Object DisplayName, UninstallString
+
+if ($targetRuntime) {
+    Write-Log "Target found: $($targetRuntime.DisplayName)"
+    
+    if ($targetRuntime.UninstallString) {
+        # Extract product code from uninstall string
+        $productCode = $targetRuntime.UninstallString -replace '.*({[0-9A-F-]+}).*', '$1'
+        if ($productCode -match '{[0-9A-F-]+}') {
+            try {
+                Write-Log "Uninstalling with command: msiexec.exe /x $productCode /qn"
+                Start-Process "msiexec.exe" -ArgumentList "/x $productCode /qn" -Wait -NoNewWindow
+                Write-Log "Uninstallation command completed for: $($targetRuntime.DisplayName)"
+                
+                # Verify uninstallation
+                Start-Sleep -Seconds 5 # Give the system a moment to update registry
+                $verifyApps = @()
+                $verifyApps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+                $verifyApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+                
+                $stillExists = $verifyApps | Where-Object { 
+                    $_.DisplayName -eq "Microsoft .NET Runtime - 7.0.20 (x64)" 
+                }
+                
+                if ($stillExists) {
+                    Write-Log "WARNING: Package still appears to be installed. Uninstallation may have failed or requires a system restart."
+                } else {
+                    Write-Log "SUCCESS: Package no longer appears in installed applications list."
+                }
+            }
+            catch {
+                Write-Log "ERROR: Failed to uninstall. Error: $_"
+            }
+        }
+        else {
+            Write-Log "ERROR: Could not extract product code from uninstall string: $($targetRuntime.UninstallString)"
+        }
+    }
+    else {
+        Write-Log "ERROR: No uninstall string found for this component."
+    }
+}
+else {
+    Write-Log "The specific target '.NET Runtime - 7.0.20 (x64)' was NOT found on this system."
+    
+    # Check for any .NET 7 Runtime as fallback
+    $anyDotNet7Runtime = $installedApps | Where-Object { 
+        $_.DisplayName -match "\.NET Runtime - 7\.0" 
+    } | Select-Object DisplayName
+    
+    if ($anyDotNet7Runtime) {
+        Write-Log "However, these .NET 7 Runtimes were found:"
+        foreach ($runtime in $anyDotNet7Runtime) {
+            Write-Log "- $($runtime.DisplayName)"
+        }
+        Write-Log "If you want to uninstall these, please modify the script to target them specifically."
+    }
+    else {
+        Write-Log "No .NET 7 Runtime of any version was found on this system."
+    }
+}
+
+Write-Log "Uninstallation process completed."
+Write-Host "Uninstallation process completed. See log file for details: $logFile" -ForegroundColor Green
