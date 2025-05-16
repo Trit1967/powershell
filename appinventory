@@ -1,297 +1,50 @@
-# Create a simple function to list installed applications
-function Get-InstalledApplications {
-    # Get applications from both registry locations (32-bit and 64-bit)
-    $32BitPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
-    $64BitPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
-    
-    # Combine results from both paths
-    $installedApps = @()
-    $installedApps += Get-ItemProperty $32BitPath
-    $installedApps += Get-ItemProperty $64BitPath
-    
-    # Filter out entries without display names and sort
-    $installedApps | 
-        Where-Object { $_.DisplayName -ne $null } | 
-        Select-Object DisplayName, DisplayVersion, Publisher, InstallDate, InstallLocation |
-        Sort-Object DisplayName
-}
 
-# Get computer name to include in the output filename
+# Test script to identify .NET 7 components WITHOUT uninstalling anything
+$logFile = "\\ionmazutil004\temp\DotNet7_TestMode_$(Get-Date -Format 'yyyyMMdd-HHmmss').txt"
 $computerName = $env:COMPUTERNAME
 
-# Get current timestamp for the filename
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+# Function to log messages
+function Write-Log {
+    param([string]$message)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "$timestamp - $message" | Out-File -FilePath $logFile -Append
+    Write-Host $message
+}
 
-# Set the output network path
-$outputPath = "\\ionmazutil004\temp\InstalledApps_${computerName}_${timestamp}.csv"
+Write-Log "TEST MODE: Identifying .NET 7 components on computer: $computerName"
+Write-Host "RUNNING IN TEST MODE - Nothing will be uninstalled" -ForegroundColor Yellow
 
-# Call the function and display results on screen
-Get-InstalledApplications | Format-Table -AutoSize
+# Get all installed applications
+$installedApps = @()
+$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+$installedApps += Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
 
-# Export results to the network location
-Get-InstalledApplications | Export-Csv -Path $outputPath -NoTypeInformation
+# First, let's get ALL .NET components for comparison
+$allDotNetComponents = $installedApps | Where-Object { 
+    $_.DisplayName -match "\.NET" 
+} | Select-Object DisplayName, Publisher, InstallDate
 
-# Display confirmation message
-Write-Host "Results exported to $outputPath" -ForegroundColor Green
+Write-Log "All .NET components found on system ($($allDotNetComponents.Count) total):"
+foreach ($component in $allDotNetComponents) {
+    Write-Log "- $($component.DisplayName)"
+}
 
+# Now target only the core .NET 7 components
+$coreDotNet7Components = $installedApps | Where-Object { 
+    $_.DisplayName -match "\.NET Runtime - 7\.0" -or 
+    $_.DisplayName -match "\.NET Host - 7\.0" -or
+    $_.DisplayName -match "\.NET Host FX Resolver - 7\.0" -or
+    $_.DisplayName -match "\.NET SDK 7\.0" -or
+    $_.DisplayName -match "ASP\.NET Core 7\.0.*Shared Framework"
+} | Select-Object DisplayName, UninstallString
 
-"Aspire.Dashboard.Sdk.win-x64 (x64)","8.1.0.0","Microsoft Corporation","20241105",""
-"Aspire.Hosting (x64)","8.1.0.0","Microsoft Corporation","20241105",""
-"Aspire.Hosting.Orchestration.win-x64 (x64)","8.1.0.0","Microsoft Corporation","20241105",""
-"Aspire.Hosting.Sdk (x64)","8.1.0.0","Microsoft Corporation","20241105",""
-"Aspire.ProjectTemplates (x64)","8.1.0.0","Microsoft Corporation","20241105",""
-"BCR Plug-in","24.2.1000.16","Citrix Systems, Inc.","20241108",""
-"BeyondTrust Jump Client - itsupport.usgs.gov","25.1.1.0","BeyondTrust Corporation","20250512",""
-"BeyondTrust Remote Support Jump Client itsupport.usgs.gov","24.2.3","BeyondTrust Corporation","20241025",""
-"BeyondTrust Remote Support Virtual Smart Card Customer","1.2.6.1","BeyondTrust Corporation","20241025","C:\Program Files\Bomgar\VSCCust\"
-"BigFix Client","11.0.3.82","HCL Technologies Ltd.","20241212","C:\Program Files (x86)\BigFix Enterprise\BES Client\"
-"Browser for SQL Server 2022","16.0.1000.6","Microsoft Corporation","20241105",""
-"BSEE - CC 6.1 - Acrobat 24.1","1.0.0000","Adobe Systems Incorporated","20241024","C:\Program Files (x86)\Adobe\My Product Name\"
-"BSEE - CC 6.4","1.0.0000","Adobe Systems Incorporated","20241104","C:\Program Files (x86)\Adobe\My Product Name\"
-"BSEE - Creative Cloud 6.5.0","1.0.0000","Adobe Systems Incorporated","20250403","C:\Program Files (x86)\Adobe\My Product Name\"
-"Cisco Secure Client - AnyConnect VPN","5.1.4.74","Cisco Systems, Inc.","20241025","C:\Program Files (x86)\Cisco\Cisco Secure Client\"
-"Cisco Secure Client - AnyConnect VPN ","5.1.4.74","Cisco Systems, Inc.",,
-"Cisco Secure Client - Network Access Manager","5.1.4.74","Cisco Systems, Inc.","20241025","c:\Program Files (x86)\Cisco\Cisco Secure Client\"
-"Citrix Workspace 2402","24.2.1001.2","Citrix Systems, Inc.",,"C:\PROGRAM FILES (X86)\CITRIX\"
-"Citrix Workspace Inside","24.2.1001.1","Citrix Systems, Inc.","20241108",""
-"Citrix Workspace(DV)","24.2.1000.16","Citrix Systems, Inc.","20241108","C:\Program Files (x86)\Citrix\ICA Client\"
-"Citrix Workspace(SSON)","24.2.1001.3","Citrix Systems, Inc.","20241108",""
-"ClickOnce Bootstrapper Package for Microsoft .NET Framework","4.8.09256","Microsoft Corporation","20241105",""
-"Configuration Manager Client","5.00.9128.1000","Microsoft Corporation","20250512",""
-"DiagnosticsHub_CollectionService","17.11.35317","Microsoft Corporation","20241105",""
-"Entity Framework 6.2.0 Tools  for Visual Studio 2022","6.2.0.0","Microsoft Corporation","20241105",""
-"GlobalProtect","6.3.2","Palo Alto Networks","20250213",""
-"icecap_collection_neutral","17.11.35103","Microsoft Corporation","20241105",""
-"icecap_collection_x64","17.11.35102","Microsoft Corporation","20241105",""
-"icecap_collectionresources","17.11.35103","Microsoft Corporation","20241105",""
-"icecap_collectionresourcesx64","17.11.35102","Microsoft Corporation","20241105",""
-"IIS 10.0 Express","10.0.08608","Microsoft Corporation","20241105",""
-"IIS Express Application Compatibility Database for x64",,,,
-"IIS Express Application Compatibility Database for x86",,,,
-"Integration Services","16.0.5491.7","Microsoft Corporation","20241105",""
-"IntelliTraceProfilerProxy","15.0.21225.01","Microsoft Corporation","20241105",""
-"IntelliTraceProfilerProxy","15.0.21225.01","Microsoft Corporation","20241105",""
-"Java 8 Update 451 (64-bit)","8.0.4510.32","Oracle Corporation","20250508","C:\Program Files\Java\jre1.8.0_451\"
-"Local Administrator Password Solution","6.2.0.0","Microsoft Corporation","20241024",""
-"Microsoft .NET 7.0 Templates 7.0.410 (x64)","28.13.2919","Microsoft Corporation","20241105",""
-"Microsoft .NET 8.0 Templates 8.0.403 (x64)","32.10.55893","Microsoft Corporation","20241105",""
-"Microsoft .NET 9.0.5 - Windows Server Hosting","9.0.5.25229","Microsoft Corporation",,
-"Microsoft .NET AppHost Pack - 7.0.20 (x64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET AppHost Pack - 7.0.20 (x64_arm)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET AppHost Pack - 7.0.20 (x64_arm64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET AppHost Pack - 7.0.20 (x64_x86)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET AppHost Pack - 8.0.10 (x64)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET AppHost Pack - 8.0.10 (x64_arm64)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET AppHost Pack - 8.0.10 (x64_x86)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET Framework 4.7.2 Targeting Pack","4.7.03062","Microsoft Corporation","20241105",""
-"Microsoft .NET Framework 4.7.2 Targeting Pack (ENU)","4.7.03062","Microsoft Corporation","20241105",""
-"Microsoft .NET Framework 4.8 SDK","4.8.03928","Microsoft Corporation","20241105",""
-"Microsoft .NET Framework 4.8 Targeting Pack","4.8.03761","Microsoft Corporation","20241105",""
-"Microsoft .NET Framework 4.8 Targeting Pack (ENU)","4.8.03761","Microsoft Corporation","20241105",""
-"Microsoft .NET Framework Cumulative Intellisense Pack for Visual Studio (ENU)","4.8.09037","Microsoft Corporation","20241105",""
-"Microsoft .NET Host - 7.0.20 (x64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET Host - 8.0.16 (x64)","64.64.32758","Microsoft Corporation","20250515",""
-"Microsoft .NET Host - 8.0.16 (x86)","64.64.32758","Microsoft Corporation","20250515",""
-"Microsoft .NET Host - 9.0.5 (x64)","72.20.32761","Microsoft Corporation","20250515",""
-"Microsoft .NET Host - 9.0.5 (x86)","72.20.32761","Microsoft Corporation","20250515",""
-"Microsoft .NET Host FX Resolver - 7.0.20 (x64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET Host FX Resolver - 8.0.10 (x64)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET Host FX Resolver - 8.0.10 (x86)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET Host FX Resolver - 8.0.16 (x64)","64.64.32758","Microsoft Corporation","20250515",""
-"Microsoft .NET Host FX Resolver - 8.0.16 (x86)","64.64.32758","Microsoft Corporation","20250515",""
-"Microsoft .NET Host FX Resolver - 9.0.5 (x64)","72.20.32761","Microsoft Corporation","20250515",""
-"Microsoft .NET Host FX Resolver - 9.0.5 (x86)","72.20.32761","Microsoft Corporation","20250515",""
-"Microsoft .NET Runtime - 7.0.20 (x64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET Runtime - 8.0.10 (x64)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET Runtime - 8.0.10 (x86)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET Runtime - 8.0.16 (x64)","64.64.32758","Microsoft Corporation","20250515",""
-"Microsoft .NET Runtime - 8.0.16 (x64)","8.0.16.34815","Microsoft Corporation",,
-"Microsoft .NET Runtime - 8.0.16 (x86)","64.64.32758","Microsoft Corporation","20250515",""
-"Microsoft .NET Runtime - 9.0.5 (x64)","72.20.32761","Microsoft Corporation","20250515",""
-"Microsoft .NET Runtime - 9.0.5 (x86)","72.20.32761","Microsoft Corporation","20250515",""
-"Microsoft .NET SDK 7.0.410 (x64)","7.4.1024.27207","Microsoft Corporation",,
-"Microsoft .NET SDK 8.0.403 (x64) from Visual Studio","8.4.324.47413","Microsoft Corporation","20241105",""
-"Microsoft .NET Standard Targeting Pack - 2.1.0 (x64)","24.0.28113","Microsoft Corporation","20241105",""
-"Microsoft .NET Targeting Pack - 7.0.20 (x64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft .NET Targeting Pack - 8.0.10 (x64)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET Targeting Pack - 8.0.10 (x86)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft .NET Toolset 7.0.410 (x64)","28.10.35687","Microsoft Corporation","20241105",""
-"Microsoft .NET Toolset 8.0.403 (x64)","32.8.55893","Microsoft Corporation","20241105",""
-"Microsoft Analysis Services OLE DB Provider","16.0.5143.0","Microsoft Corporation","20241105",""
-"Microsoft Analysis Services OLE DB Provider","16.0.5143.0","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core 7.0.20 Shared Framework (x64)","7.0.20.24269","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core 7.0.20 Targeting Pack (x64)","7.0.20.24269","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core 8.0.10 Shared Framework (x64)","8.0.10.24468","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core 8.0.10 Shared Framework (x86)","8.0.10.24468","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core 8.0.10 Targeting Pack (x64)","8.0.10.24468","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core 8.0.10 Targeting Pack (x86)","8.0.10.24468","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core 8.0.16 - Shared Framework (x64)","8.0.16.25216","Microsoft Corporation",,
-"Microsoft ASP.NET Core 8.0.16 - Shared Framework (x86)","8.0.16.25216","Microsoft Corporation",,
-"Microsoft ASP.NET Core 8.0.16 Shared Framework (x64)","8.0.16.25216","Microsoft Corporation","20250515",""
-"Microsoft ASP.NET Core 8.0.16 Shared Framework (x86)","8.0.16.25216","Microsoft Corporation","20250515",""
-"Microsoft ASP.NET Core 9.0.5 Hosting Bundle Options","9.0.5.25229","Microsoft Corporation","20250515",""
-"Microsoft ASP.NET Core 9.0.5 Shared Framework (x64)","9.0.5.25229","Microsoft Corporation","20250515",""
-"Microsoft ASP.NET Core 9.0.5 Shared Framework (x86)","9.0.5.25229","Microsoft Corporation","20250515",""
-"Microsoft ASP.NET Core Module for IIS Express","12.2.18292.0","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Core Module V2 for IIS Express","17.0.22116.0","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Diagnostic Pack for Visual Studio","17.11.231.19466","Microsoft Corporation","20241105",""
-"Microsoft ASP.NET Web Tools Packages 17.0 - ENU","17.0.40305.0","Microsoft Corporation","20241105",""
-"Microsoft Azure Authoring Tools - v2.9.7","2.9.8999.45","Microsoft Corporation","20241105",""
-"Microsoft Azure Compute Emulator - v2.9.7","2.9.8999.43","Microsoft Corporation","11/5/2024",""
-"Microsoft Azure Compute Emulator - v2.9.7","2.9.8999.43","Microsoft Corporation","20241105",""
-"Microsoft Azure Libraries for .NET ? v2.9","3.0.2404.2502","Microsoft Corporation","20241105",""
-"Microsoft Azure PowerShell - April 2018","5.7.0.18831","Microsoft Corporation","20241105",""
-"Microsoft Command Line Utilities 15 for SQL Server","15.0.1300.359","Microsoft Corporation","20241105",""
-"Microsoft Edge","136.0.3240.64","Microsoft Corporation","20250516",""
-"Microsoft Edge WebView2 Runtime","136.0.3240.64","Microsoft Corporation","20250510","C:\Program Files (x86)\Microsoft\EdgeWebView\Application"
-"Microsoft Help Viewer 2.3","2.3.28307","Microsoft Corporation","20241105",""
-"Microsoft Help Viewer 2.3","2.3.28307","Microsoft Corporation",,"C:\Program Files (x86)\Microsoft Help Viewer\v2.3\"
-"Microsoft NetStandard SDK","15.0.51105","Microsoft Corporation","20241105",""
-"Microsoft ODBC Driver 17 for SQL Server","17.10.6.1","Microsoft Corporation","20241105",""
-"Microsoft OLE DB Driver for SQL Server","18.7.4.0","Microsoft Corporation","20241105",""
-"Microsoft Policy Platform","68.1.9099.1053","Microsoft Corporation","20241024",""
-"Microsoft SQL Server 2019 LocalDB ","15.0.4382.1","Microsoft Corporation","20241105",""
-"Microsoft SQL Server 2022 (64-bit)",,,,
-"Microsoft SQL Server 2022 (64-bit)",,"Microsoft Corporation",,
-"Microsoft SQL Server 2022 RsFx Driver","16.0.1000.6","Microsoft Corporation","20241105",""
-"Microsoft SQL Server 2022 Setup (English)","16.0.1000.6","Microsoft Corporation","20241105",""
-"Microsoft SQL Server Management Studio - 20.2","20.2.30.0","Microsoft Corporation",,
-"Microsoft System CLR Types for SQL Server 2019","15.0.2000.5","Microsoft Corporation","20241105",""
-"Microsoft TestPlatform SDK Local Feed","17.10.0.9037153","Microsoft","20241105",""
-"Microsoft Visual C++ 2013 Redistributable (x64) - 12.0.40664","12.0.40664.0","Microsoft Corporation",,
-"Microsoft Visual C++ 2013 Redistributable (x86) - 12.0.40664","12.0.40664.0","Microsoft Corporation",,
-"Microsoft Visual C++ 2013 x64 Additional Runtime - 12.0.40664","12.0.40664","Microsoft Corporation","20241024",""
-"Microsoft Visual C++ 2013 x64 Minimum Runtime - 12.0.40664","12.0.40664","Microsoft Corporation","20241024",""
-"Microsoft Visual C++ 2013 x86 Additional Runtime - 12.0.40664","12.0.40664","Microsoft Corporation","20241024",""
-"Microsoft Visual C++ 2013 x86 Minimum Runtime - 12.0.40664","12.0.40664","Microsoft Corporation","20241024",""
-"Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.42.34438","14.42.34438.0","Microsoft Corporation",,
-"Microsoft Visual C++ 2015-2022 Redistributable (x86) - 14.42.34438","14.42.34438.0","Microsoft Corporation",,
-"Microsoft Visual C++ 2022 X64 Additional Runtime - 14.42.34438","14.42.34438","Microsoft Corporation","20250224",""
-"Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.42.34438","14.42.34438","Microsoft Corporation","20250224",""
-"Microsoft Visual C++ 2022 X86 Additional Runtime - 14.42.34438","14.42.34438","Microsoft Corporation","20250224",""
-"Microsoft Visual C++ 2022 X86 Minimum Runtime - 14.42.34438","14.42.34438","Microsoft Corporation","20250224",""
-"Microsoft Visual Studio Installer","3.11.2180.21897","Microsoft Corporation","20241105","""C:\Program Files (x86)\Microsoft Visual Studio\Installer"""
-"Microsoft Visual Studio Setup Configuration","3.11.2133.16870","Microsoft Corporation","20241105",""
-"Microsoft Visual Studio Setup WMI Provider","3.11.2133.16870","Microsoft Corporation","20241105",""
-"Microsoft Visual Studio Tools for Applications 2019","16.0.31110","Microsoft Corporation",,
-"Microsoft Visual Studio Tools for Applications 2019 x64 Hosting Support","16.0.31110","Microsoft Corporation","20241105",""
-"Microsoft Visual Studio Tools for Applications 2019 x86 Hosting Support","16.0.31110","Microsoft Corporation","20241105",""
-"Microsoft VSS Writer for SQL Server 2022","16.0.1000.6","Microsoft Corporation","20241105",""
-"Microsoft Web Deploy 4.0","10.0.8305","Microsoft Corporation","20241105",""
-"Microsoft Windows Desktop Runtime - 7.0.20 (x64)","56.80.15245","Microsoft Corporation","20241105",""
-"Microsoft Windows Desktop Runtime - 8.0.10 (x64)","64.40.21605","Microsoft Corporation","20241105",""
-"Microsoft Windows Desktop Runtime - 8.0.10 (x86)","64.40.21605","Microsoft Corporation","20241105",""
-"Microsoft Windows Desktop Runtime - 8.0.16 (x86)","64.64.32786","Microsoft Corporation","20250515",""
-"Microsoft Windows Desktop Runtime - 8.0.16 (x86)","8.0.16.34817","Microsoft Corporation",,
-"Microsoft Windows Desktop Targeting Pack - 7.0.20 (x64)","56.80.15245","Microsoft Corporation","20241105",""
-"Microsoft Windows Desktop Targeting Pack - 8.0.10 (x64)","64.40.21605","Microsoft Corporation","20241105",""
-"Microsoft Windows Desktop Targeting Pack - 8.0.10 (x86)","64.40.21605","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.Android.Manifest-7.0.100 (x64)","33.0.4","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.Android.Manifest-8.0.100 (x64)","34.0.113","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.Aspire.Manifest-8.0.100 (x64)","64.64.18482","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.iOS.Manifest-7.0.100 (x64)","16.0.0","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.iOS.Manifest-8.0.100 (x64)","18.0.8303","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.MacCatalyst.Manifest-7.0.100 (x64)","15.4.0","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.MacCatalyst.Manifest-8.0.100 (x64)","18.0.8303","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.macOS.Manifest-7.0.100 (x64)","12.3.0","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.macOS.Manifest-8.0.100 (x64)","15.0.8303","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.Maui.Manifest-7.0.100 (x64)","7.0.49","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.Maui.Manifest-8.0.100 (x64)","8.0.82","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.tvOS.Manifest-7.0.100 (x64)","16.0.0","Microsoft Corporation","20241105",""
-"Microsoft.NET.Sdk.tvOS.Manifest-8.0.100 (x64)","18.0.8303","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Emscripten.Current.Manifest (x64)","64.40.21345","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Emscripten.net6.Manifest (x64)","64.40.21345","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Emscripten.net6.Manifest (x64)","56.80.15172","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Emscripten.net7.Manifest (x64)","64.40.21345","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Emscripten.net7.Manifest (x64)","56.80.15172","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Mono.Toolchain.Current.Manifest (x64)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest (x64)","64.40.21578","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Mono.Toolchain.net6.Manifest (x64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest (x64)","56.80.15184","Microsoft Corporation","20241105",""
-"Microsoft.NET.Workload.Mono.Toolchain.net7.Manifest (x64)","64.40.21578","Microsoft Corporation","20241105",""
-"MTOP Client","24.2.1000.16","Citrix Systems, Inc.","20241108",""
-"Node.js","23.10.0","Node.js Foundation","20250328",""
-"Online Plug-in","24.2.1000.16","Citrix Systems, Inc.","20241108",""
-"ONRR_Financials_Links_01-2022","1.00.2022","ONRR","20241030","C:\Program Files (x86)\ONRR Financials System\ONRR Financials System\"
-"SAP Business Explorer","8.00","SAP SE",,
-"SAP GUI for Windows 8.00 32bit  (Patch 6)","8.00 Compilation 1","SAP SE",,
-"SAPscript Legacy Text Editor",,"SAP SE",,
-"SNC Client Encryption 2.0","2.0.0.3","SAP SE","",
-"SQL Compare 15","15.4.6.27751","Red Gate Software Ltd.","20250123","C:\PROGRA~2\Red Gate\SQL Compare 15\"
-"SQL Compare 15","15.4.6.27751","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Compare 15\"
-"SQL Data Compare 15","15.4.6.27751","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Data Compare 15\"
-"SQL Data Compare 15","15.4.6.27751","Red Gate Software Ltd.","20250123","C:\PROGRA~2\Red Gate\SQL Data Compare 15\"
-"SQL Data Generator 4","4.6.3.5985","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Data Generator 4\"
-"SQL Data Generator 4","4.6.3.5985","Red Gate Software Ltd","20250123","C:\PROGRA~2\Red Gate\SQL Data Generator 4\"
-"SQL Dependency Tracker 3","3.4.3.5925","Red Gate Software Ltd","20250123","C:\PROGRA~2\Red Gate\SQL Dependency Tracker 3\"
-"SQL Dependency Tracker 3","3.4.3.5925","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Dependency Tracker 3\"
-"SQL Doc 5","5.3.2.5034","Red Gate Software Ltd","20250123","C:\PROGRA~2\Red Gate\SQL Doc 5\"
-"SQL Doc 5","5.3.2.5034","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Doc 5\"
-"SQL Multi Script 1","1.6.4.3391","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Multi Script 1\"
-"SQL Multi Script 1","1.6.4.3391","Red Gate Software Ltd","20250123","C:\PROGRA~2\Red Gate\SQL Multi Script 1\"
-"SQL Prompt 10","10.16.3.14709","Red Gate Software Ltd","20250123","C:\PROGRA~2\Red Gate\SQL Prompt 10\"
-"SQL Search 3","3.7.2.5316","Red Gate Software Ltd.","20250123","C:\PROGRA~2\Red Gate\SQL Search\"
-"SQL Search 3","3.7.2.5316","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Search\"
-"SQL Server 2022 Batch Parser","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Common Files","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Common Files","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Connection Info","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Connection Info","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Database Engine Services","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Database Engine Services","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Database Engine Shared","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Database Engine Shared","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 DMF","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 DMF","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Shared Management Objects","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Shared Management Objects","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Shared Management Objects Extensions","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 Shared Management Objects Extensions","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 SQL Diagnostics","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 XEvent","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server 2022 XEvent","16.0.1000.6","Microsoft Corporation","20241105",""
-"SQL Server Management Studio","20.2.30.0","Microsoft Corp.","20241105",""
-"SQL Server Management Studio Language Pack - English","20.2.30.0","Microsoft Corp.","20241105",""
-"SQL Source Control 7","7.8.2.19696","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Source Control 7\"
-"SQL Source Control 7","7.8.2.19696","Red Gate Software Ltd.","20241125","C:\PROGRA~2\Red Gate\SQL Source Control 7\"
-"SQL Test 4","4.2.3.4012","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SQL Test 4\"
-"SQL Test 4","4.2.3.4012","Red Gate Software Ltd","20250123","C:\PROGRA~2\Red Gate\SQL Test 4\"
-"SSMS Integration Pack 3","3.2.2.856","Red Gate Software Ltd.","20241121","C:\PROGRA~2\Red Gate\SSMS Integration Pack\"
-"SSMS Integration Pack 3","3.2.2.856","Red Gate Software Ltd.",,"C:\PROGRA~2\Red Gate\SSMS Integration Pack\"
-"SSMS Post Install Tasks","20.2.30.0","Microsoft Corporation","20241105",""
-"Support Platform","5.0.0.1","EITCS",,
-"vcpp_crt.redist.clickonce","14.40.33816","Microsoft Corporation","20241105",""
-"Visual Studio 2017 Isolated Shell for SSMS","15.0.28307.421","Microsoft Corporation","20241105",""
-"Visual Studio Enterprise 2022","17.11.5","Microsoft Corporation","20241105","C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
-"VLC media player","3.0.21","VideoLAN",,"C:\Program Files\VideoLAN\VLC"
-"VS Immersive Activate Helper","17.0.157.0","Microsoft Corporation","20241105",""
-"VS JIT Debugger","17.0.157.0","Microsoft Corporation","20241105",""
-"VS Script Debugging Common","17.0.157.0","Microsoft Corporation","20241105",""
-"vs_BlendMsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_clickoncebootstrappermsi","17.11.35103","Microsoft Corporation","20241105",""
-"vs_clickoncebootstrappermsires","17.11.35102","Microsoft Corporation","20241105",""
-"vs_clickoncesigntoolmsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_codecoveragemsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_communitymsires","17.11.35103","Microsoft Corporation","20241105",""
-"vs_communitysharedmsi","17.11.35103","Microsoft Corporation","20241105",""
-"vs_communityx64msi","17.11.35103","Microsoft Corporation","20241105",""
-"vs_CoreEditorFonts","17.7.40001","Microsoft Corporation","20241105",""
-"vs_devenvsharedmsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_devenx64vmsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_filehandler_amd64","17.11.35102","Microsoft Corporation","20241105",""
-"vs_filehandler_x86","17.11.35102","Microsoft Corporation","20241105",""
-"vs_FileTracker_Singleton","17.11.35102","Microsoft Corporation","20241105",""
-"vs_githubprotocolhandlermsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_minshellinteropsharedmsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_minshellinteropx64msi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_minshellmsires","17.11.35102","Microsoft Corporation","20241105",""
-"vs_minshellsharedmsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_minshellx64msi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_networkemulationmsi_x64","17.11.35102","Microsoft Corporation","20241105",""
-"vs_SQLClickOnceBootstrappermsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_tipsmsi","17.11.35102","Microsoft Corporation","20241105",""
-"vs_vswebprotocolselectormsi","17.11.35102","Microsoft Corporation","20241105",""
-"Windows Firewall Configuration Provider","68.1.9099.1053","Microsoft Corporation","20241025",""
+Write-Log ""
+Write-Log "COMPONENTS THAT WOULD BE UNINSTALLED ($($coreDotNet7Components.Count) total):"
+foreach ($component in $coreDotNet7Components) {
+    Write-Log "- $($component.DisplayName)"
+}
 
-
-
+Write-Log ""
+Write-Log "TEST COMPLETE: Review this log to verify only .NET 7 components would be affected."
+Write-Host "Test completed. Review log file for details: $logFile" -ForegroundColor Green
+Write-Host "If the results look correct, you can run the real uninstall script." -ForegroundColor Green
