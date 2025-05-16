@@ -1,0 +1,35 @@
+# Create a simple function to list installed applications
+function Get-InstalledApplications {
+    # Get applications from both registry locations (32-bit and 64-bit)
+    $32BitPath = "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    $64BitPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    
+    # Combine results from both paths
+    $installedApps = @()
+    $installedApps += Get-ItemProperty $32BitPath
+    $installedApps += Get-ItemProperty $64BitPath
+    
+    # Filter out entries without display names and sort
+    $installedApps | 
+        Where-Object { $_.DisplayName -ne $null } | 
+        Select-Object DisplayName, DisplayVersion, Publisher, InstallDate, InstallLocation |
+        Sort-Object DisplayName
+}
+
+# Get computer name to include in the output filename
+$computerName = $env:COMPUTERNAME
+
+# Get current timestamp for the filename
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+
+# Set the output network path
+$outputPath = "\\ionmazutil004\temp\InstalledApps_${computerName}_${timestamp}.csv"
+
+# Call the function and display results on screen
+Get-InstalledApplications | Format-Table -AutoSize
+
+# Export results to the network location
+Get-InstalledApplications | Export-Csv -Path $outputPath -NoTypeInformation
+
+# Display confirmation message
+Write-Host "Results exported to $outputPath" -ForegroundColor Green
