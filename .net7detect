@@ -1,0 +1,150 @@
+# .NET 7 Detection Script - Terminal Output
+# This script checks if .NET 7 is installed using multiple detection methods
+# and outputs results directly to the terminal
+
+Write-Host "================================================================" -ForegroundColor Cyan
+Write-Host "                      .NET 7 DETECTOR" -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor Cyan
+
+# Track overall detection
+$dotnet7Found = $false
+$componentsFound = 0
+
+Write-Host "`n[1/4] Checking Windows Registry..." -ForegroundColor Yellow
+$registryPaths = @(
+    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+)
+
+$regComponents = Get-ItemProperty $registryPaths -ErrorAction SilentlyContinue | Where-Object { 
+    ($_.DisplayName -match "\.NET( Runtime| Desktop Runtime| ASP\.NET Core Runtime) 7\.") -or
+    ($_.DisplayName -match "Microsoft \.NET SDK 7\.") 
+}
+
+if ($regComponents) {
+    $dotnet7Found = $true
+    $count = ($regComponents | Measure-Object).Count
+    $componentsFound += $count
+    Write-Host "  √ Found $count .NET 7 components in registry" -ForegroundColor Green
+    foreach ($component in $regComponents) {
+        Write-Host "    - $($component.DisplayName) (v$($component.DisplayVersion))" -ForegroundColor Green
+        if ($component.UninstallString) {
+            Write-Host "      Uninstall: $($component.UninstallString)" -ForegroundColor DarkGray
+        }
+    }
+} else {
+    Write-Host "  × No .NET 7 components found in registry" -ForegroundColor Gray
+}
+
+Write-Host "`n[2/4] Checking File System..." -ForegroundColor Yellow
+$installDirs = @(
+    @{Path="$env:ProgramFiles\dotnet\shared\Microsoft.NETCore.App\7.*"; Type="Runtime"},
+    @{Path="$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\7.*"; Type="ASP.NET Core Runtime"},
+    @{Path="$env:ProgramFiles\dotnet\shared\Microsoft.WindowsDesktop.App\7.*"; Type="Desktop Runtime"},
+    @{Path="$env:ProgramFiles\dotnet\sdk\7.*"; Type="SDK"}
+)
+
+$fileSystemFound = $false
+foreach ($dir in $installDirs) {
+    $matches = Get-Item -Path $dir.Path -ErrorAction SilentlyContinue
+    if ($matches) {
+        $fileSystemFound = $true
+        $dotnet7Found = $true
+        $dirCount = ($matches | Measure-Object).Count
+        $componentsFound += $dirCount
+        
+        Write-Host "  √ Found $dirCount $($dir.Type) directories:" -ForegroundColor Green
+        foreach ($match in $matches) {
+            $version = Split-Path $match.FullName -Leaf
+            $size = "{0:N2} MB" -f ((Get-ChildItem $match.FullName -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum / 1MB)
+            Write-Host "    - v$version ($size)" -ForegroundColor Green
+            Write-Host "      Path: $($match.FullName)" -ForegroundColor DarkGray
+        }
+    }
+}
+
+if (-not $fileSystemFound) {
+    Write-Host "  × No .NET 7 directories found in the file system" -ForegroundColor Gray
+}
+
+Write-Host "`n[3/4] Checking .NET CLI..." -ForegroundColor Yellow
+try {
+    $dotnetCommand = Get-Command dotnet -ErrorAction SilentlyContinue
+    if ($dotnetCommand) {
+        # Check runtimes
+        $runtimes = dotnet --list-runtimes 2>$null
+        $dotnet7Runtimes = $runtimes | Where-Object { $_ -match " 7\." }
+        
+        # Check SDKs
+        $sdks = dotnet --list-sdks 2>$null
+        $dotnet7Sdks = $sdks | Where-Object { $_ -match " 7\." }
+        
+        if ($dotnet7Runtimes -or $dotnet7Sdks) {
+            $dotnet7Found = $true
+            $runtimeCount = ($dotnet7Runtimes | Measure-Object).Count
+            $sdkCount = ($dotnet7Sdks | Measure-Object).Count
+            $componentsFound += ($runtimeCount + $sdkCount)
+            
+            if ($runtimeCount -gt 0) {
+                Write-Host "  √ Found $runtimeCount .NET 7 Runtime packages:" -ForegroundColor Green
+                foreach ($runtime in $dotnet7Runtimes) {
+                    Write-Host "    - $runtime" -ForegroundColor Green
+                }
+            }
+            
+            if ($sdkCount -gt 0) {
+                Write-Host "  √ Found $sdkCount .NET 7 SDK packages:" -ForegroundColor Green
+                foreach ($sdk in $dotnet7Sdks) {
+                    Write-Host "    - $sdk" -ForegroundColor Green
+                }
+            }
+        } else {
+            Write-Host "  × No .NET 7 components reported by dotnet CLI" -ForegroundColor Gray
+        }
+    } else {
+        Write-Host "  × dotnet CLI not found on this system" -ForegroundColor Gray
+    }
+} catch {
+    Write-Host "  × Error using dotnet CLI: $_" -ForegroundColor Red
+}
+
+Write-Host "`n[4/4] Checking Windows Installer Database (WMI)..." -ForegroundColor Yellow
+try {
+    Write-Host "  This may take a moment..." -ForegroundColor DarkGray
+    $wmiProducts = Get-CimInstance -ClassName Win32_Product -ErrorAction SilentlyContinue | 
+        Where-Object { ($_.Name -match "\.NET( Runtime| Desktop Runtime| ASP\.NET Core Runtime) 7\.") -or 
+                      ($_.Name -match "Microsoft \.NET SDK 7\.") }
+    
+    if ($wmiProducts) {
+        $dotnet7Found = $true
+        $count = ($wmiProducts | Measure-Object).Count
+        $componentsFound += $count
+        Write-Host "  √ Found $count .NET 7 components in WMI database:" -ForegroundColor Green
+        
+        foreach ($product in $wmiProducts) {
+            Write-Host "    - $($product.Name) (v$($product.Version))" -ForegroundColor Green
+            Write-Host "      ID: $($product.IdentifyingNumber)" -ForegroundColor DarkGray
+        }
+    } else {
+        Write-Host "  × No .NET 7 components found in WMI database" -ForegroundColor Gray
+    }
+} catch {
+    Write-Host "  ! Error accessing WMI: $_" -ForegroundColor Yellow
+    Write-Host "    (This is not critical - some systems restrict WMI access)" -ForegroundColor DarkGray
+}
+
+# Summary
+Write-Host "`n================================================================" -ForegroundColor Cyan
+Write-Host "                      FINAL VERDICT" -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor Cyan
+
+if ($dotnet7Found) {
+    Write-Host "`n  [DETECTED] .NET 7 IS INSTALLED ON THIS SYSTEM" -ForegroundColor Green
+    Write-Host "  Found $componentsFound total .NET 7 component(s)" -ForegroundColor Green
+    Write-Host "`n  To remove .NET 7, you can use the uninstaller script or Control Panel." -ForegroundColor Cyan
+} else {
+    Write-Host "`n  [NOT DETECTED] .NET 7 IS NOT INSTALLED ON THIS SYSTEM" -ForegroundColor Yellow
+    Write-Host "  No .NET 7 components were found using any detection method." -ForegroundColor Yellow
+}
+
+Write-Host "`n================================================================" -ForegroundColor Cya
