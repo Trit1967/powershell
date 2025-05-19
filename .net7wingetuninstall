@@ -1,8 +1,13 @@
-# Silent .NET 7 Detection, Uninstallation and Verification using WinGet
-# This script runs with no user interaction and no output dialogs
+# .NET 7 Removal Script with Status Prompts - No WinGet Progress Indicator
+# This script shows progress and details while uninstalling .NET 7
+
+Write-Host "================================================================" -ForegroundColor Cyan
+Write-Host "                .NET 7 UNINSTALLER SCRIPT" -ForegroundColor Cyan
+Write-Host "================================================================" -ForegroundColor Cyan
 
 # Function to detect .NET 7
 function Detect-DotNet7 {
+    Write-Host "`n[1/4] Checking Windows Registry..." -ForegroundColor Yellow
     $dotnet7Found = $false
     $detectedComponents = @()
     
@@ -19,17 +24,26 @@ function Detect-DotNet7 {
     
     if ($regComponents) {
         $dotnet7Found = $true
+        Write-Host "  √ Found $($regComponents.Count) .NET 7 components in registry:" -ForegroundColor Green
         foreach ($component in $regComponents) {
+            Write-Host "    - $($component.DisplayName) (v$($component.DisplayVersion))" -ForegroundColor Green
+            if ($component.UninstallString) {
+                Write-Host "      Uninstall: $($component.UninstallString)" -ForegroundColor DarkGray
+            }
+            
             $detectedComponents += @{
                 Type = "Registry"
                 Name = $component.DisplayName
                 Version = $component.DisplayVersion
-                Location = $component.InstallLocation
                 UninstallString = $component.UninstallString
+                ProductCode = $component.PSChildName
             }
         }
+    } else {
+        Write-Host "  × No .NET 7 components found in registry" -ForegroundColor Gray
     }
     
+    Write-Host "`n[2/4] Checking File System..." -ForegroundColor Yellow
     # File system detection
     $installDirs = @(
         @{Path="$env:ProgramFiles\dotnet\shared\Microsoft.NETCore.App\7.*"; Type="Runtime"},
@@ -38,12 +52,18 @@ function Detect-DotNet7 {
         @{Path="$env:ProgramFiles\dotnet\sdk\7.*"; Type="SDK"}
     )
     
+    $fileSystemFound = $false
     foreach ($dir in $installDirs) {
         $matches = Get-Item -Path $dir.Path -ErrorAction SilentlyContinue
         if ($matches) {
+            $fileSystemFound = $true
             $dotnet7Found = $true
+            
+            Write-Host "  √ Found $($matches.Count) $($dir.Type) directories:" -ForegroundColor Green
             foreach ($match in $matches) {
                 $version = Split-Path $match.FullName -Leaf
+                Write-Host "    - v$version at $($match.FullName)" -ForegroundColor Green
+                
                 $detectedComponents += @{
                     Type = "FileSystem"
                     Name = $dir.Type
@@ -52,6 +72,10 @@ function Detect-DotNet7 {
                 }
             }
         }
+    }
+    
+    if (-not $fileSystemFound) {
+        Write-Host "  × No .NET 7 directories found in the file system" -ForegroundColor Gray
     }
     
     return @{
@@ -64,15 +88,72 @@ function Detect-DotNet7 {
 function Test-WinGet {
     try {
         $winget = Get-Command -Name winget -ErrorAction Stop
+        Write-Host "  √ WinGet is available on this system" -ForegroundColor Green
         return $true
     }
     catch {
+        Write-Host "  × WinGet is not available on this system" -ForegroundColor Yellow
         return $false
     }
 }
 
-# Function to uninstall .NET 7 using WinGet
+# Function to run WinGet silently with suppressed progress indicator
+function Invoke-WinGetSilently {
+    param (
+        [string]$Command,
+        [string]$Id
+    )
+    
+    # Build the full command
+    $wingetCmd = "winget $Command --id $Id --silent --accept-source-agreements"
+    
+    # Run the command with output redirected to null
+    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    $pinfo.FileName = "cmd.exe"
+    $pinfo.Arguments = "/c $wingetCmd >nul 2>&1"
+    $pinfo.CreateNoWindow = $true
+    $pinfo.UseShellExecute = $false
+    $pinfo.RedirectStandardOutput = $true
+    $pinfo.RedirectStandardError = $true
+    
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $pinfo
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+    
+    return $process.ExitCode
+}
+
+# Function to check if a package exists with WinGet
+function Test-WinGetPackage {
+    param (
+        [string]$Id
+    )
+    
+    # Build the full command
+    $wingetCmd = "winget list --id $Id --exact --accept-source-agreements"
+    
+    # Run the command with output redirected to null
+    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+    $pinfo.FileName = "cmd.exe"
+    $pinfo.Arguments = "/c $wingetCmd >nul 2>&1"
+    $pinfo.CreateNoWindow = $true
+    $pinfo.UseShellExecute = $false
+    $pinfo.RedirectStandardOutput = $true
+    $pinfo.RedirectStandardError = $true
+    
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $pinfo
+    $process.Start() | Out-Null
+    $process.WaitForExit()
+    
+    return $process.ExitCode -eq 0
+}
+
+# Function to uninstall using WinGet (without progress indicator)
 function Uninstall-DotNet7WithWinGet {
+    Write-Host "`n[1/3] Uninstalling with WinGet..." -ForegroundColor Yellow
+    
     # Components to uninstall
     $componentIds = @(
         "Microsoft.DotNet.SDK.7",
@@ -81,62 +162,179 @@ function Uninstall-DotNet7WithWinGet {
         "Microsoft.DotNet.Runtime.7"
     )
     
+    $anyUninstalled = $false
+    
     foreach ($id in $componentIds) {
+        Write-Host "  Checking for $id..." -ForegroundColor DarkGray
+        
         try {
-            # First check if the component exists
-            $checkResult = & winget list --id $id --exact --accept-source-agreements 2>$null
+            # Check if the component exists (without showing progress)
+            $exists = Test-WinGetPackage -Id $id
             
             # If the component exists, uninstall it
-            if ($LASTEXITCODE -eq 0) {
-                & winget uninstall --id $id --silent --accept-source-agreements
+            if ($exists) {
+                Write-Host "    √ Found $id. Uninstalling..." -ForegroundColor Green
+                
+                # Run the uninstall command with suppressed progress indicator
+                $exitCode = Invoke-WinGetSilently -Command "uninstall" -Id $id
+                
+                if ($exitCode -eq 0) {
+                    Write-Host "    √ Successfully uninstalled $id" -ForegroundColor Green
+                    $anyUninstalled = $true
+                } else {
+                    Write-Host "    × Failed to uninstall $id (Exit code: $exitCode)" -ForegroundColor Red
+                }
+                
                 Start-Sleep -Seconds 2  # Brief pause to let WinGet finish
+            } else {
+                Write-Host "    - $id not found" -ForegroundColor DarkGray
             }
         }
         catch {
-            # Silently continue if there's an error
+            $errorMsg = $_.Exception.Message
+            Write-Host "    × Error checking/uninstalling $id`: $errorMsg" -ForegroundColor Red
         }
+    }
+    
+    if (-not $anyUninstalled) {
+        Write-Host "  - No components uninstalled with WinGet" -ForegroundColor DarkGray
     }
 }
 
-# Function for alternative uninstallation when WinGet is not available
-function Uninstall-DotNet7Fallback {
+# Function for uninstallation using registry information
+function Uninstall-DotNet7FromRegistry {
     param (
         [array]$Components
     )
     
+    Write-Host "`n[2/3] Uninstalling using registry information..." -ForegroundColor Yellow
+    
+    $uninstallCount = 0
+    
     foreach ($component in $Components) {
         if ($component.Type -eq "Registry" -and $component.UninstallString) {
+            Write-Host "  Uninstalling: $($component.Name) (v$($component.Version))" -ForegroundColor Cyan
             $uninstallString = $component.UninstallString
             
             # MSI-based uninstall
             if ($uninstallString -match "msiexec") {
                 if ($uninstallString -match "{[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}}") {
                     $productCode = $matches[0]
-                    Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $productCode /qn /norestart" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
+                    Write-Host "    Using MSI product code: $productCode" -ForegroundColor DarkGray
+                    Write-Host "    Executing: msiexec.exe /x $productCode /qn /norestart" -ForegroundColor DarkGray
+                    
+                    # Using process start info to suppress output
+                    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $pinfo.FileName = "msiexec.exe"
+                    $pinfo.Arguments = "/x $productCode /qn /norestart"
+                    $pinfo.CreateNoWindow = $true
+                    $pinfo.UseShellExecute = $false
+                    $pinfo.RedirectStandardOutput = $true
+                    $pinfo.RedirectStandardError = $true
+                    
+                    $process = New-Object System.Diagnostics.Process
+                    $process.StartInfo = $pinfo
+                    $process.Start() | Out-Null
+                    $process.WaitForExit()
+                    
+                    Write-Host "    √ MSI uninstallation completed (Exit code: $($process.ExitCode))" -ForegroundColor Green
+                    $uninstallCount++
                 }
                 else {
+                    Write-Host "    Using modified uninstall string" -ForegroundColor DarkGray
                     $uninstallCmd = $uninstallString -replace "/I", "/X"
                     $uninstallCmd = "$uninstallCmd /qn /norestart"
-                    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $uninstallCmd" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
+                    Write-Host "    Executing: $uninstallCmd" -ForegroundColor DarkGray
+                    
+                    # Run through cmd with suppressed output
+                    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $pinfo.FileName = "cmd.exe"
+                    $pinfo.Arguments = "/c $uninstallCmd"
+                    $pinfo.CreateNoWindow = $true
+                    $pinfo.UseShellExecute = $false
+                    $pinfo.RedirectStandardOutput = $true
+                    $pinfo.RedirectStandardError = $true
+                    
+                    $process = New-Object System.Diagnostics.Process
+                    $process.StartInfo = $pinfo
+                    $process.Start() | Out-Null
+                    $process.WaitForExit()
+                    
+                    Write-Host "    √ MSI uninstallation completed (Exit code: $($process.ExitCode))" -ForegroundColor Green
+                    $uninstallCount++
                 }
             }
-            # EXE-based uninstall - Now with improved error handling
+            # EXE-based uninstall
             elseif ($uninstallString -match "\.exe") {
+                Write-Host "    Using EXE uninstaller with quiet parameters" -ForegroundColor DarkGray
+                $uninstallCmd = "$uninstallString /quiet /norestart"
+                Write-Host "    Executing: $uninstallCmd" -ForegroundColor DarkGray
+                
                 try {
-                    # Method 1: Try using the entire uninstall string via cmd
-                    $uninstallCmdWithParams = "$uninstallString /quiet /norestart"
-                    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $uninstallCmdWithParams" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
+                    # Run through cmd with suppressed output
+                    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $pinfo.FileName = "cmd.exe"
+                    $pinfo.Arguments = "/c $uninstallCmd"
+                    $pinfo.CreateNoWindow = $true
+                    $pinfo.UseShellExecute = $false
+                    $pinfo.RedirectStandardOutput = $true
+                    $pinfo.RedirectStandardError = $true
+                    
+                    $process = New-Object System.Diagnostics.Process
+                    $process.StartInfo = $pinfo
+                    $process.Start() | Out-Null
+                    $process.WaitForExit()
+                    
+                    Write-Host "    √ EXE uninstallation completed (Exit code: $($process.ExitCode))" -ForegroundColor Green
+                    $uninstallCount++
                 }
                 catch {
-                    # Silent failure - continue to next component
+                    $errorMsg = $_.Exception.Message
+                    Write-Host "    × Error during EXE uninstallation: $errorMsg" -ForegroundColor Red
+                }
+            }
+            else {
+                Write-Host "    Using uninstall string as-is" -ForegroundColor DarkGray
+                Write-Host "    Executing: $uninstallString" -ForegroundColor DarkGray
+                
+                try {
+                    # Run through cmd with suppressed output
+                    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $pinfo.FileName = "cmd.exe"
+                    $pinfo.Arguments = "/c $uninstallString"
+                    $pinfo.CreateNoWindow = $true
+                    $pinfo.UseShellExecute = $false
+                    $pinfo.RedirectStandardOutput = $true
+                    $pinfo.RedirectStandardError = $true
+                    
+                    $process = New-Object System.Diagnostics.Process
+                    $process.StartInfo = $pinfo
+                    $process.Start() | Out-Null
+                    $process.WaitForExit()
+                    
+                    Write-Host "    √ Uninstallation completed (Exit code: $($process.ExitCode))" -ForegroundColor Green
+                    $uninstallCount++
+                }
+                catch {
+                    $errorMsg = $_.Exception.Message
+                    Write-Host "    × Error during uninstallation: $errorMsg" -ForegroundColor Red
                 }
             }
         }
     }
+    
+    if ($uninstallCount -eq 0) {
+        Write-Host "  - No components uninstalled using registry information" -ForegroundColor DarkGray
+    }
+    else {
+        Write-Host "  √ Uninstalled $uninstallCount components using registry information" -ForegroundColor Green
+    }
 }
 
-# Direct file removal function
+# Function for direct file removal
 function Remove-DotNet7Files {
+    Write-Host "`n[3/3] Cleaning up any remaining .NET 7 files..." -ForegroundColor Yellow
+    
     # Remove .NET 7 directories directly
     $dotnet7Dirs = @(
         "$env:ProgramFiles\dotnet\shared\Microsoft.NETCore.App\7.*",
@@ -145,40 +343,153 @@ function Remove-DotNet7Files {
         "$env:ProgramFiles\dotnet\sdk\7.*"
     )
     
+    $removedAny = $false
+    
     foreach ($dir in $dotnet7Dirs) {
+        $matches = Get-Item -Path $dir -ErrorAction SilentlyContinue
+        
+        if ($matches) {
+            Write-Host "  Found $($matches.Count) .NET 7 directories to remove:" -ForegroundColor Cyan
+            
+            foreach ($match in $matches) {
+                Write-Host "    Removing: $($match.FullName)" -ForegroundColor DarkGray
+                
+                try {
+                    Remove-Item -Path $match.FullName -Recurse -Force -ErrorAction Stop
+                    Write-Host "    √ Successfully removed directory" -ForegroundColor Green
+                    $removedAny = $true
+                }
+                catch {
+                    $errorMsg = $_.Exception.Message
+                    Write-Host "    × Failed to remove directory: $errorMsg" -ForegroundColor Red
+                }
+            }
+        }
+    }
+    
+    # Check if we need to clean up package cache
+    Write-Host "  Checking package cache directories..." -ForegroundColor DarkGray
+    $packageCacheDirs = Get-ChildItem "C:\ProgramData\Package Cache" -ErrorAction SilentlyContinue | 
+        Where-Object { $_.Name -match "{[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}}" }
+    
+    # Specifically check for the package ID from the image
+    $targetPackageId = "{34a201b9-cccf-44b1-812c-c9e5443fd8f4}"
+    $targetPackagePath = "C:\ProgramData\Package Cache\$targetPackageId"
+    
+    if (Test-Path $targetPackagePath -ErrorAction SilentlyContinue) {
+        Write-Host "  Found target package cache: $targetPackagePath" -ForegroundColor Cyan
         try {
-            Remove-Item -Path $dir -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -Path $targetPackagePath -Recurse -Force -ErrorAction Stop
+            Write-Host "  √ Successfully removed target package cache" -ForegroundColor Green
+            $removedAny = $true
         }
         catch {
-            # Silent failure
+            $errorMsg = $_.Exception.Message
+            Write-Host "  × Failed to remove target package cache: $errorMsg" -ForegroundColor Red
         }
+    }
+    
+    if ($packageCacheDirs) {
+        foreach ($dir in $packageCacheDirs) {
+            # Skip if already removed the target package
+            if ($dir.Name -eq $targetPackageId) {
+                continue
+            }
+            
+            # Check if this is a .NET 7 package by looking for a .NET 7-related exe
+            $dotnetFiles = Get-ChildItem $dir.FullName -Filter "*.exe" -Recurse -ErrorAction SilentlyContinue | 
+                Where-Object { $_.Name -match "dotnet|netcorecheck" }
+            
+            if ($dotnetFiles) {
+                # Try to find version info in the directory
+                $versionInfoFile = Get-ChildItem $dir.FullName -Filter "*.txt" -Recurse -ErrorAction SilentlyContinue | 
+                    Select-String -Pattern "7\." -SimpleMatch -List -ErrorAction SilentlyContinue
+                
+                if ($versionInfoFile -or 
+                    (Get-Content $dotnetFiles[0].FullName -Raw -ErrorAction SilentlyContinue | Select-String -Pattern "7\." -SimpleMatch)) {
+                    Write-Host "    Removing .NET 7 package cache: $($dir.FullName)" -ForegroundColor DarkGray
+                    
+                    try {
+                        Remove-Item -Path $dir.FullName -Recurse -Force -ErrorAction Stop
+                        Write-Host "    √ Successfully removed package cache" -ForegroundColor Green
+                        $removedAny = $true
+                    }
+                    catch {
+                        $errorMsg = $_.Exception.Message
+                        Write-Host "    × Failed to remove package cache: $errorMsg" -ForegroundColor Red
+                    }
+                }
+            }
+        }
+    }
+    
+    if (-not $removedAny) {
+        Write-Host "  - No .NET 7 directories found to remove" -ForegroundColor DarkGray
     }
 }
 
-# Main execution flow - entirely silent
+# Main execution flow
 # -----------------------------------------
 
-# Step 1: Detect .NET 7 installations
+Write-Host "`nSTEP 1: Detecting .NET 7 installations..." -ForegroundColor Cyan
 $initialDetection = Detect-DotNet7
 
 if ($initialDetection.Found) {
-    # Step 2: Try to uninstall with WinGet first
-    if (Test-WinGet) {
+    Write-Host "`n.NET 7 was detected on this system. Proceeding with uninstallation..." -ForegroundColor Cyan
+    Write-Host "STEP 2: Starting uninstallation process..." -ForegroundColor Cyan
+    
+    # Check if WinGet is available
+    $wingetAvailable = Test-WinGet
+    
+    # Try uninstallation with WinGet first if available
+    if ($wingetAvailable) {
         Uninstall-DotNet7WithWinGet
     }
+    else {
+        Write-Host "  Skipping WinGet uninstallation - WinGet not available" -ForegroundColor Yellow
+    }
     
-    # Step 3: Fallback to direct uninstallation if needed
-    Uninstall-DotNet7Fallback -Components $initialDetection.Components
+    # Use registry uninstallation as an alternative or backup method
+    Uninstall-DotNet7FromRegistry -Components $initialDetection.Components
     
-    # Step 4: Verify uninstallation
+    # Clean up any remaining files
+    Remove-DotNet7Files
+    
+    # Verify uninstallation
+    Write-Host "`nSTEP 3: Verifying uninstallation..." -ForegroundColor Cyan
     Start-Sleep -Seconds 5  # Give some time for processes to complete
     $verificationResult = Detect-DotNet7
     
-    # If still found, force delete remaining files
+    Write-Host "`n================================================================" -ForegroundColor Cyan
+    Write-Host "                      FINAL RESULT" -ForegroundColor Cyan
+    Write-Host "================================================================" -ForegroundColor Cyan
+    
     if ($verificationResult.Found) {
-        Remove-DotNet7Files
+        Write-Host "`n  [WARNING] Some .NET 7 components remain on the system" -ForegroundColor Yellow
+        Write-Host "  You may need to manually remove these remaining components" -ForegroundColor Yellow
+        
+        # Offer advice on remaining components
+        if ($verificationResult.Components.Count -gt 0) {
+            Write-Host "`n  Remaining components:" -ForegroundColor Yellow
+            foreach ($component in $verificationResult.Components) {
+                if ($component.Type -eq "Registry") {
+                    Write-Host "    - Registry: $($component.Name) (v$($component.Version))" -ForegroundColor Yellow
+                } 
+                elseif ($component.Type -eq "FileSystem") {
+                    Write-Host "    - File System: $($component.Name) v$($component.Version) at $($component.Location)" -ForegroundColor Yellow
+                }
+            }
+        }
+    }
+    else {
+        Write-Host "`n  [SUCCESS] All .NET 7 components have been successfully uninstalled!" -ForegroundColor Green
+        Write-Host "  System is now clear of .NET 7 installations" -ForegroundColor Green
     }
 }
+else {
+    Write-Host "`n.NET 7 was NOT detected on this system. No uninstallation needed." -ForegroundColor Green
+}
 
-# Exit silently with success code
-exit 0
+Write-Host "`n================================================================" -ForegroundColor Cyan
+Write-Host "                 UNINSTALLATION COMPLETED" -ForegroundColor Cyan  
+Write-Host "================================================================" -ForegroundColor Cyan
