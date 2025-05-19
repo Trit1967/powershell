@@ -1,0 +1,184 @@
+# Silent .NET 7 Detection, Uninstallation and Verification using WinGet
+# This script runs with no user interaction and no output dialogs
+
+# Function to detect .NET 7
+function Detect-DotNet7 {
+    $dotnet7Found = $false
+    $detectedComponents = @()
+    
+    # Registry detection
+    $registryPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+    
+    $regComponents = Get-ItemProperty $registryPaths -ErrorAction SilentlyContinue | Where-Object { 
+        ($_.DisplayName -match "\.NET( Runtime| Desktop Runtime| ASP\.NET Core Runtime) 7\.") -or
+        ($_.DisplayName -match "Microsoft \.NET SDK 7\.") 
+    }
+    
+    if ($regComponents) {
+        $dotnet7Found = $true
+        foreach ($component in $regComponents) {
+            $detectedComponents += @{
+                Type = "Registry"
+                Name = $component.DisplayName
+                Version = $component.DisplayVersion
+                Location = $component.InstallLocation
+                UninstallString = $component.UninstallString
+            }
+        }
+    }
+    
+    # File system detection
+    $installDirs = @(
+        @{Path="$env:ProgramFiles\dotnet\shared\Microsoft.NETCore.App\7.*"; Type="Runtime"},
+        @{Path="$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\7.*"; Type="ASP.NET Core Runtime"},
+        @{Path="$env:ProgramFiles\dotnet\shared\Microsoft.WindowsDesktop.App\7.*"; Type="Desktop Runtime"},
+        @{Path="$env:ProgramFiles\dotnet\sdk\7.*"; Type="SDK"}
+    )
+    
+    foreach ($dir in $installDirs) {
+        $matches = Get-Item -Path $dir.Path -ErrorAction SilentlyContinue
+        if ($matches) {
+            $dotnet7Found = $true
+            foreach ($match in $matches) {
+                $version = Split-Path $match.FullName -Leaf
+                $detectedComponents += @{
+                    Type = "FileSystem"
+                    Name = $dir.Type
+                    Version = $version
+                    Location = $match.FullName
+                }
+            }
+        }
+    }
+    
+    return @{
+        Found = $dotnet7Found
+        Components = $detectedComponents
+    }
+}
+
+# Function to check if WinGet is available
+function Test-WinGet {
+    try {
+        $winget = Get-Command -Name winget -ErrorAction Stop
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
+# Function to uninstall .NET 7 using WinGet
+function Uninstall-DotNet7WithWinGet {
+    # Components to uninstall
+    $componentIds = @(
+        "Microsoft.DotNet.SDK.7",
+        "Microsoft.DotNet.DesktopRuntime.7",
+        "Microsoft.DotNet.AspNetCore.7",
+        "Microsoft.DotNet.Runtime.7"
+    )
+    
+    foreach ($id in $componentIds) {
+        try {
+            # First check if the component exists
+            $checkResult = & winget list --id $id --exact --accept-source-agreements 2>$null
+            
+            # If the component exists, uninstall it
+            if ($LASTEXITCODE -eq 0) {
+                & winget uninstall --id $id --silent --accept-source-agreements
+                Start-Sleep -Seconds 2  # Brief pause to let WinGet finish
+            }
+        }
+        catch {
+            # Silently continue if there's an error
+        }
+    }
+}
+
+# Function for alternative uninstallation when WinGet is not available
+function Uninstall-DotNet7Fallback {
+    param (
+        [array]$Components
+    )
+    
+    foreach ($component in $Components) {
+        if ($component.Type -eq "Registry" -and $component.UninstallString) {
+            $uninstallString = $component.UninstallString
+            
+            # MSI-based uninstall
+            if ($uninstallString -match "msiexec") {
+                if ($uninstallString -match "{[0-9A-F]{8}-([0-9A-F]{4}-){3}[0-9A-F]{12}}") {
+                    $productCode = $matches[0]
+                    Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $productCode /qn /norestart" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
+                }
+                else {
+                    $uninstallCmd = $uninstallString -replace "/I", "/X"
+                    $uninstallCmd = "$uninstallCmd /qn /norestart"
+                    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $uninstallCmd" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
+                }
+            }
+            # EXE-based uninstall - Now with improved error handling
+            elseif ($uninstallString -match "\.exe") {
+                try {
+                    # Method 1: Try using the entire uninstall string via cmd
+                    $uninstallCmdWithParams = "$uninstallString /quiet /norestart"
+                    Start-Process -FilePath "cmd.exe" -ArgumentList "/c $uninstallCmdWithParams" -Wait -WindowStyle Hidden -ErrorAction SilentlyContinue
+                }
+                catch {
+                    # Silent failure - continue to next component
+                }
+            }
+        }
+    }
+}
+
+# Direct file removal function
+function Remove-DotNet7Files {
+    # Remove .NET 7 directories directly
+    $dotnet7Dirs = @(
+        "$env:ProgramFiles\dotnet\shared\Microsoft.NETCore.App\7.*",
+        "$env:ProgramFiles\dotnet\shared\Microsoft.AspNetCore.App\7.*",
+        "$env:ProgramFiles\dotnet\shared\Microsoft.WindowsDesktop.App\7.*",
+        "$env:ProgramFiles\dotnet\sdk\7.*"
+    )
+    
+    foreach ($dir in $dotnet7Dirs) {
+        try {
+            Remove-Item -Path $dir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        catch {
+            # Silent failure
+        }
+    }
+}
+
+# Main execution flow - entirely silent
+# -----------------------------------------
+
+# Step 1: Detect .NET 7 installations
+$initialDetection = Detect-DotNet7
+
+if ($initialDetection.Found) {
+    # Step 2: Try to uninstall with WinGet first
+    if (Test-WinGet) {
+        Uninstall-DotNet7WithWinGet
+    }
+    
+    # Step 3: Fallback to direct uninstallation if needed
+    Uninstall-DotNet7Fallback -Components $initialDetection.Components
+    
+    # Step 4: Verify uninstallation
+    Start-Sleep -Seconds 5  # Give some time for processes to complete
+    $verificationResult = Detect-DotNet7
+    
+    # If still found, force delete remaining files
+    if ($verificationResult.Found) {
+        Remove-DotNet7Files
+    }
+}
+
+# Exit silently with success code
+exit 0
