@@ -1,0 +1,1 @@
+Get-WinEvent -FilterHashtable @{LogName='System';Id=6005} | Select-Object TimeCreated | Sort-Object TimeCreated
