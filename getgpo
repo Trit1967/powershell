@@ -1,0 +1,225 @@
+<#
+.SYNOPSIS
+    Extracts Group Policy settings from a specific domain and OU to a CSV file.
+.DESCRIPTION
+    This script extracts GPO settings from a domain and organizational unit,
+    then exports the data to a CSV file for later comparison.
+.PARAMETER Domain
+    The FQDN of the domain to extract GPO data from.
+.PARAMETER OUPath
+    The distinguished name of the OU to extract linked GPOs from.
+.PARAMETER OutputFile
+    Path to save the CSV file with GPO data.
+.EXAMPLE
+    .\Extract-GPO.ps1 -Domain "child.contoso.com" -OUPath "OU=Servers,DC=child,DC=contoso,DC=com" -OutputFile "ChildGPOs.csv"
+#>
+
+param (
+    [Parameter(Mandatory=$true)]
+    [string]$Domain,
+    
+    [Parameter(Mandatory=$true)]
+    [string]$OUPath,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$OutputFile = "GPOData.csv"
+)
+
+# Ensure required modules are available
+if (-not (Get-Module -ListAvailable -Name GroupPolicy)) {
+    Write-Host "GroupPolicy module not available. Installing RSAT Group Policy Management Tools..."
+    try {
+        Get-WindowsCapability -Name RSAT.GroupPolicy* -Online | Add-WindowsCapability -Online
+        Import-Module GroupPolicy
+    }
+    catch {
+        Write-Error "Failed to install GroupPolicy module. Please install RSAT tools manually."
+        exit 1
+    }
+}
+
+if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
+    Write-Host "ActiveDirectory module not available. Installing RSAT AD Tools..."
+    try {
+        Get-WindowsCapability -Name Rsat.ActiveDirectory* -Online | Add-WindowsCapability -Online
+        Import-Module ActiveDirectory
+    }
+    catch {
+        Write-Error "Failed to install ActiveDirectory module. Please install RSAT tools manually."
+        exit 1
+    }
+}
+
+Write-Host "Extracting GPO data from domain: $Domain"
+Write-Host "OU Path: $OUPath"
+Write-Host "Output will be saved to: $OutputFile"
+
+# Function to get GPOs linked to a specific OU
+function Get-LinkedGPOs {
+    param (
+        [string]$Domain,
+        [string]$OUPath
+    )
+    
+    Write-Host "Getting GPOs linked to $OUPath in domain $Domain..."
+    try {
+        # Get the OU object
+        $OU = Get-ADOrganizationalUnit -Identity $OUPath -Server $Domain
+        
+        # Get GPOs linked to this OU
+        $gpLinks = $OU.LinkedGroupPolicyObjects
+        $linkedGPOs = @()
+        
+        foreach ($gpLink in $gpLinks) {
+            # Extract GUID from the link
+            $guidMatch = [regex]::Match($gpLink, '{(.*?)}')
+            if ($guidMatch.Success) {
+                $gpGuid = $guidMatch.Groups[1].Value
+                
+                # Get the GPO using the GUID
+                $gpo = Get-GPO -Guid $gpGuid -Domain $Domain -ErrorAction SilentlyContinue
+                
+                if ($gpo) {
+                    $linkedGPOs += $gpo
+                }
+            }
+        }
+        
+        return $linkedGPOs
+    }
+    catch {
+        Write-Error "Failed to get GPOs linked to $OUPath in domain $Domain. Error: $_"
+        return $null
+    }
+}
+
+# Function to extract GPO settings
+function Get-GPOSettingsDetail {
+    param (
+        [Microsoft.GroupPolicy.Gpo]$GPO,
+        [string]$Domain
+    )
+    
+    Write-Host "Extracting settings for GPO: $($GPO.DisplayName)"
+    try {
+        # Get the GPO report in XML format
+        $report = Get-GPOReport -Guid $GPO.Id -Domain $Domain -ReportType Xml
+        [xml]$xmlReport = $report
+        
+        $gpoData = @()
+        
+        # Process computer settings
+        if ($xmlReport.GPO.Computer.ExtensionData) {
+            foreach ($extension in $xmlReport.GPO.Computer.ExtensionData) {
+                if ($extension.Extension.RegistrySettings) {
+                    foreach ($setting in $extension.Extension.RegistrySettings.Registry) {
+                        $gpoData += [PSCustomObject]@{
+                            GPOName = $GPO.DisplayName
+                            GPOID = $GPO.Id
+                            Domain = $Domain
+                            SettingType = "Computer"
+                            Category = "Registry"
+                            KeyPath = $setting.KeyPath
+                            ValueName = $setting.Value.Name
+                            Value = $setting.Value.'#text'
+                            State = $setting.State
+                        }
+                    }
+                }
+                
+                if ($extension.Extension.SecurityOptions) {
+                    foreach ($setting in $extension.Extension.SecurityOptions.SecurityOption) {
+                        $gpoData += [PSCustomObject]@{
+                            GPOName = $GPO.DisplayName
+                            GPOID = $GPO.Id
+                            Domain = $Domain
+                            SettingType = "Computer"
+                            Category = "Security"
+                            KeyPath = "N/A"
+                            ValueName = $setting.Name
+                            Value = $setting.SettingNumber
+                            State = "Enabled"
+                        }
+                    }
+                }
+                
+                # Add more extension types as needed
+            }
+        }
+        
+        # Process user settings
+        if ($xmlReport.GPO.User.ExtensionData) {
+            foreach ($extension in $xmlReport.GPO.User.ExtensionData) {
+                if ($extension.Extension.RegistrySettings) {
+                    foreach ($setting in $extension.Extension.RegistrySettings.Registry) {
+                        $gpoData += [PSCustomObject]@{
+                            GPOName = $GPO.DisplayName
+                            GPOID = $GPO.Id
+                            Domain = $Domain
+                            SettingType = "User"
+                            Category = "Registry"
+                            KeyPath = $setting.KeyPath
+                            ValueName = $setting.Value.Name
+                            Value = $setting.Value.'#text'
+                            State = $setting.State
+                        }
+                    }
+                }
+                
+                # Add more extension types as needed
+            }
+        }
+        
+        # Add GPO metadata if no settings were found
+        if ($gpoData.Count -eq 0) {
+            $gpoData += [PSCustomObject]@{
+                GPOName = $GPO.DisplayName
+                GPOID = $GPO.Id
+                Domain = $Domain
+                SettingType = "Metadata"
+                Category = "GPO Info"
+                KeyPath = "N/A"
+                ValueName = "WMI Filter"
+                Value = $GPO.WmiFilter.Name
+                State = $GPO.GpoStatus
+            }
+        }
+        
+        return $gpoData
+    }
+    catch {
+        Write-Error "Failed to get settings for GPO $($GPO.DisplayName). Error: $_"
+        return $null
+    }
+}
+
+# Main script execution
+try {
+    # Get GPOs linked to the specified OU
+    $GPOs = Get-LinkedGPOs -Domain $Domain -OUPath $OUPath
+    
+    if ($GPOs) {
+        Write-Host "Found $($GPOs.Count) GPOs linked to the OU in $Domain"
+        
+        $allGPOSettings = @()
+        
+        # Extract settings for each GPO
+        foreach ($gpo in $GPOs) {
+            $settings = Get-GPOSettingsDetail -GPO $gpo -Domain $Domain
+            if ($settings) {
+                $allGPOSettings += $settings
+            }
+        }
+        
+        # Export to CSV
+        $allGPOSettings | Export-Csv -Path $OutputFile -NoTypeInformation
+        Write-Host "GPO data exported to: $OutputFile"
+        Write-Host "Extracted $($allGPOSettings.Count) total settings"
+    }
+    else {
+        Write-Error "Failed to retrieve GPOs from domain $Domain"
+    }
+}
+catch {
+    Write-Error "An error occurred: $_"
+}
