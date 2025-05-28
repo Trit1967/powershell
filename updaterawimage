@@ -1,0 +1,5 @@
+# Get the current installation details
+$app = Get-AppxPackage Microsoft.RawImageExtension
+
+# Re-register the app to update it
+Add-AppxPackage -Register "$($app.InstallLocation)\AppxManifest.xml" -DisableDevelopmentMode -ForceApplicationShutdown
