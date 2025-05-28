@@ -1,225 +1,159 @@
 <#
 .SYNOPSIS
-    Extracts Group Policy settings from a specific domain and OU to a CSV file.
+    Extracts both Computer and User Group Policy Results for comparison.
 .DESCRIPTION
-    This script extracts GPO settings from a domain and organizational unit,
-    then exports the data to a CSV file for later comparison.
-.PARAMETER Domain
-    The FQDN of the domain to extract GPO data from.
-.PARAMETER OUPath
-    The distinguished name of the OU to extract linked GPOs from.
-.PARAMETER OutputFile
-    Path to save the CSV file with GPO data.
+    This script runs gpresult with specific parameters to ensure both Computer and User
+    policies are captured for comparison between domains.
 .EXAMPLE
-    .\Extract-GPO.ps1 -Domain "child.contoso.com" -OUPath "OU=Servers,DC=child,DC=contoso,DC=com" -OutputFile "ChildGPOs.csv"
+    .\Extract-GPResult-Complete.ps1
 #>
 
-param (
-    [Parameter(Mandatory=$true)]
-    [string]$Domain,
-    
-    [Parameter(Mandatory=$true)]
-    [string]$OUPath,
-    
-    [Parameter(Mandatory=$false)]
-    [string]$OutputFile = "GPOData.csv"
-)
+# Output folder - change as needed
+$OutputFolder = "C:\GPOComparison"
 
-# Ensure required modules are available
-if (-not (Get-Module -ListAvailable -Name GroupPolicy)) {
-    Write-Host "GroupPolicy module not available. Installing RSAT Group Policy Management Tools..."
-    try {
-        Get-WindowsCapability -Name RSAT.GroupPolicy* -Online | Add-WindowsCapability -Online
-        Import-Module GroupPolicy
-    }
-    catch {
-        Write-Error "Failed to install GroupPolicy module. Please install RSAT tools manually."
-        exit 1
-    }
+# Create output folder if it doesn't exist
+if (-not (Test-Path $OutputFolder)) {
+    New-Item -Path $OutputFolder -ItemType Directory -Force | Out-Null
 }
 
-if (-not (Get-Module -ListAvailable -Name ActiveDirectory)) {
-    Write-Host "ActiveDirectory module not available. Installing RSAT AD Tools..."
-    try {
-        Get-WindowsCapability -Name Rsat.ActiveDirectory* -Online | Add-WindowsCapability -Online
-        Import-Module ActiveDirectory
-    }
-    catch {
-        Write-Error "Failed to install ActiveDirectory module. Please install RSAT tools manually."
-        exit 1
-    }
-}
+# Get computer and domain info
+$computerName = $env:COMPUTERNAME
+$domainInfo = Get-WmiObject Win32_ComputerSystem
+$domainName = $domainInfo.Domain
 
-Write-Host "Extracting GPO data from domain: $Domain"
-Write-Host "OU Path: $OUPath"
-Write-Host "Output will be saved to: $OutputFile"
+# Create a prefix for filenames based on domain
+$filePrefix = ($domainName.Split('.'))[0] + "_"
 
-# Function to get GPOs linked to a specific OU
-function Get-LinkedGPOs {
-    param (
-        [string]$Domain,
-        [string]$OUPath
-    )
-    
-    Write-Host "Getting GPOs linked to $OUPath in domain $Domain..."
-    try {
-        # Get the OU object
-        $OU = Get-ADOrganizationalUnit -Identity $OUPath -Server $Domain
-        
-        # Get GPOs linked to this OU
-        $gpLinks = $OU.LinkedGroupPolicyObjects
-        $linkedGPOs = @()
-        
-        foreach ($gpLink in $gpLinks) {
-            # Extract GUID from the link
-            $guidMatch = [regex]::Match($gpLink, '{(.*?)}')
-            if ($guidMatch.Success) {
-                $gpGuid = $guidMatch.Groups[1].Value
-                
-                # Get the GPO using the GUID
-                $gpo = Get-GPO -Guid $gpGuid -Domain $Domain -ErrorAction SilentlyContinue
-                
-                if ($gpo) {
-                    $linkedGPOs += $gpo
-                }
-            }
-        }
-        
-        return $linkedGPOs
-    }
-    catch {
-        Write-Error "Failed to get GPOs linked to $OUPath in domain $Domain. Error: $_"
-        return $null
-    }
-}
+# Define output file paths
+$computerXML = Join-Path $OutputFolder ($filePrefix + "Computer_GPResult.xml")
+$userXML = Join-Path $OutputFolder ($filePrefix + "User_GPResult.xml")
+$combinedHTML = Join-Path $OutputFolder ($filePrefix + "Combined_GPResult.html")
+$computerHTML = Join-Path $OutputFolder ($filePrefix + "Computer_GPResult.html")
+$userHTML = Join-Path $OutputFolder ($filePrefix + "User_GPResult.html")
+$summaryOutput = Join-Path $OutputFolder ($filePrefix + "GPO_Summary.csv")
 
-# Function to extract GPO settings
-function Get-GPOSettingsDetail {
-    param (
-        [Microsoft.GroupPolicy.Gpo]$GPO,
-        [string]$Domain
-    )
-    
-    Write-Host "Extracting settings for GPO: $($GPO.DisplayName)"
-    try {
-        # Get the GPO report in XML format
-        $report = Get-GPOReport -Guid $GPO.Id -Domain $Domain -ReportType Xml
-        [xml]$xmlReport = $report
-        
-        $gpoData = @()
-        
-        # Process computer settings
-        if ($xmlReport.GPO.Computer.ExtensionData) {
-            foreach ($extension in $xmlReport.GPO.Computer.ExtensionData) {
-                if ($extension.Extension.RegistrySettings) {
-                    foreach ($setting in $extension.Extension.RegistrySettings.Registry) {
-                        $gpoData += [PSCustomObject]@{
-                            GPOName = $GPO.DisplayName
-                            GPOID = $GPO.Id
-                            Domain = $Domain
-                            SettingType = "Computer"
-                            Category = "Registry"
-                            KeyPath = $setting.KeyPath
-                            ValueName = $setting.Value.Name
-                            Value = $setting.Value.'#text'
-                            State = $setting.State
-                        }
-                    }
-                }
-                
-                if ($extension.Extension.SecurityOptions) {
-                    foreach ($setting in $extension.Extension.SecurityOptions.SecurityOption) {
-                        $gpoData += [PSCustomObject]@{
-                            GPOName = $GPO.DisplayName
-                            GPOID = $GPO.Id
-                            Domain = $Domain
-                            SettingType = "Computer"
-                            Category = "Security"
-                            KeyPath = "N/A"
-                            ValueName = $setting.Name
-                            Value = $setting.SettingNumber
-                            State = "Enabled"
-                        }
-                    }
-                }
-                
-                # Add more extension types as needed
-            }
-        }
-        
-        # Process user settings
-        if ($xmlReport.GPO.User.ExtensionData) {
-            foreach ($extension in $xmlReport.GPO.User.ExtensionData) {
-                if ($extension.Extension.RegistrySettings) {
-                    foreach ($setting in $extension.Extension.RegistrySettings.Registry) {
-                        $gpoData += [PSCustomObject]@{
-                            GPOName = $GPO.DisplayName
-                            GPOID = $GPO.Id
-                            Domain = $Domain
-                            SettingType = "User"
-                            Category = "Registry"
-                            KeyPath = $setting.KeyPath
-                            ValueName = $setting.Value.Name
-                            Value = $setting.Value.'#text'
-                            State = $setting.State
-                        }
-                    }
-                }
-                
-                # Add more extension types as needed
-            }
-        }
-        
-        # Add GPO metadata if no settings were found
-        if ($gpoData.Count -eq 0) {
-            $gpoData += [PSCustomObject]@{
-                GPOName = $GPO.DisplayName
-                GPOID = $GPO.Id
-                Domain = $Domain
-                SettingType = "Metadata"
-                Category = "GPO Info"
-                KeyPath = "N/A"
-                ValueName = "WMI Filter"
-                Value = $GPO.WmiFilter.Name
-                State = $GPO.GpoStatus
-            }
-        }
-        
-        return $gpoData
-    }
-    catch {
-        Write-Error "Failed to get settings for GPO $($GPO.DisplayName). Error: $_"
-        return $null
-    }
-}
+Write-Host "Extracting Group Policy Results on $computerName in domain $domainName"
+Write-Host "Output files will be saved to: $OutputFolder"
 
-# Main script execution
 try {
-    # Get GPOs linked to the specified OU
-    $GPOs = Get-LinkedGPOs -Domain $Domain -OUPath $OUPath
+    # Run gpresult for COMPUTER policies - explicitly specify scope
+    Write-Host "Generating Computer policy results..."
+    $processComputer = Start-Process -FilePath "gpresult" -ArgumentList "/scope computer /f /x `"$computerXML`"" -Wait -NoNewWindow -PassThru
+    $processComputerHTML = Start-Process -FilePath "gpresult" -ArgumentList "/scope computer /h `"$computerHTML`" /f" -Wait -NoNewWindow -PassThru
     
-    if ($GPOs) {
-        Write-Host "Found $($GPOs.Count) GPOs linked to the OU in $Domain"
+    if ($processComputer.ExitCode -ne 0) {
+        Write-Warning "gpresult for Computer policies returned exit code $($processComputer.ExitCode)"
+    }
+
+    # Run gpresult for USER policies - explicitly specify scope
+    Write-Host "Generating User policy results..."
+    $processUser = Start-Process -FilePath "gpresult" -ArgumentList "/scope user /f /x `"$userXML`"" -Wait -NoNewWindow -PassThru
+    $processUserHTML = Start-Process -FilePath "gpresult" -ArgumentList "/scope user /h `"$userHTML`" /f" -Wait -NoNewWindow -PassThru
+    
+    if ($processUser.ExitCode -ne 0) {
+        Write-Warning "gpresult for User policies returned exit code $($processUser.ExitCode)"
+    }
+    
+    # Run gpresult for COMBINED view (both Computer and User)
+    Write-Host "Generating combined policy results..."
+    $processCombined = Start-Process -FilePath "gpresult" -ArgumentList "/h `"$combinedHTML`" /f" -Wait -NoNewWindow -PassThru
+
+    # Create a consolidated summary of applied GPOs
+    Write-Host "Creating GPO summary CSV..."
+    
+    $gpoSummary = @()
+    
+    # Process Computer GPOs
+    if (Test-Path $computerXML) {
+        [xml]$computerData = Get-Content $computerXML
         
-        $allGPOSettings = @()
-        
-        # Extract settings for each GPO
-        foreach ($gpo in $GPOs) {
-            $settings = Get-GPOSettingsDetail -GPO $gpo -Domain $Domain
-            if ($settings) {
-                $allGPOSettings += $settings
+        if ($computerData.Rsop.ComputerResults.GPO) {
+            foreach ($gpo in $computerData.Rsop.ComputerResults.GPO) {
+                $gpoSummary += [PSCustomObject]@{
+                    Domain = $domainName
+                    Computer = $computerName
+                    PolicyType = "Computer"
+                    GPOName = $gpo.Name
+                    Applied = "Yes"
+                    LinkName = $gpo.LinkName
+                    Status = $(if ($gpo.Enabled -eq "true") { "Enabled" } else { "Disabled" })
+                    FilterType = $gpo.FilterName
+                    ID = $gpo.ID
+                }
             }
+        } else {
+            Write-Warning "No Computer GPOs found in XML data"
         }
+    } else {
+        Write-Warning "Computer XML file not found: $computerXML"
+    }
+    
+    # Process User GPOs
+    if (Test-Path $userXML) {
+        [xml]$userData = Get-Content $userXML
         
-        # Export to CSV
-        $allGPOSettings | Export-Csv -Path $OutputFile -NoTypeInformation
-        Write-Host "GPO data exported to: $OutputFile"
-        Write-Host "Extracted $($allGPOSettings.Count) total settings"
+        if ($userData.Rsop.UserResults.GPO) {
+            foreach ($gpo in $userData.Rsop.UserResults.GPO) {
+                $gpoSummary += [PSCustomObject]@{
+                    Domain = $domainName
+                    Computer = $computerName
+                    PolicyType = "User"
+                    GPOName = $gpo.Name
+                    Applied = "Yes"
+                    LinkName = $gpo.LinkName
+                    Status = $(if ($gpo.Enabled -eq "true") { "Enabled" } else { "Disabled" })
+                    FilterType = $gpo.FilterName
+                    ID = $gpo.ID
+                }
+            }
+        } else {
+            Write-Warning "No User GPOs found in XML data"
+        }
+    } else {
+        Write-Warning "User XML file not found: $userXML"
     }
-    else {
-        Write-Error "Failed to retrieve GPOs from domain $Domain"
+    
+    # Export the summary to CSV
+    if ($gpoSummary.Count -gt 0) {
+        $gpoSummary | Export-Csv -Path $summaryOutput -NoTypeInformation
+        Write-Host "Exported $($gpoSummary.Count) GPO entries to summary file"
+    } else {
+        Write-Warning "No GPOs found to export to summary file"
     }
+    
+    # List all Computer GPOs for verification
+    Write-Host "`nComputer GPOs found:"
+    $computerGPOs = $gpoSummary | Where-Object { $_.PolicyType -eq "Computer" }
+    if ($computerGPOs) {
+        $computerGPOs | ForEach-Object { Write-Host "- $($_.GPOName)" }
+    } else {
+        Write-Host "None found"
+    }
+    
+    # List all User GPOs for verification
+    Write-Host "`nUser GPOs found:"
+    $userGPOs = $gpoSummary | Where-Object { $_.PolicyType -eq "User" }
+    if ($userGPOs) {
+        $userGPOs | ForEach-Object { Write-Host "- $($_.GPOName)" }
+    } else {
+        Write-Host "None found"
+    }
+    
+    Write-Host "`nGPResult extraction complete!"
+    Write-Host "Generated files:"
+    Write-Host "- Computer XML: $computerXML"
+    Write-Host "- User XML: $userXML"
+    Write-Host "- Combined HTML: $combinedHTML"
+    Write-Host "- Computer HTML: $computerHTML"
+    Write-Host "- User HTML: $userHTML"
+    Write-Host "- GPO Summary: $summaryOutput"
+    
+    Write-Host "`nTo compare between domains:"
+    Write-Host "1. Run this script on a machine in each domain"
+    Write-Host "2. Copy all files to a single location"
+    Write-Host "3. Compare the summary CSV files or HTML reports"
+    Write-Host "4. For a quick analysis, run: Compare-Object -ReferenceObject (Import-Csv 'child_GPO_Summary.csv') -DifferenceObject (Import-Csv 'parent_GPO_Summary.csv') -Property GPOName,PolicyType"
 }
 catch {
-    Write-Error "An error occurred: $_"
+    Write-Error "Error extracting GPResult data: $_"
 }
