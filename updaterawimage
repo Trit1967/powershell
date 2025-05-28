@@ -13,3 +13,8 @@ Get-AppxPackage Microsoft.RawImageExtension | Select-Object Name, Version
 
 winget install Microsoft.RawImageExtension --accept-source-agreements --accept-package-agreements
 
+winget install Microsoft.RawImageExtension --accept-source-agreements --accept-package-agreements --location "US"
+
+powershell# Get Microsoft Store app details using PowerShell
+$StoreApp = Get-AppxPackage -Name Microsoft.RawImageExtension
+$StoreApp | Select-Object Name, Publisher, Version, InstallLocation
