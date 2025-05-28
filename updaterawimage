@@ -10,3 +10,6 @@ Add-AppxPackage -Register "$($app.InstallLocation)\AppxManifest.xml" -DisableDev
 
 # Get version with PowerShell
 Get-AppxPackage Microsoft.RawImageExtension | Select-Object Name, Version
+
+winget install Microsoft.RawImageExtension --accept-source-agreements --accept-package-agreements
+
