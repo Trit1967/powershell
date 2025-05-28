@@ -1,0 +1,274 @@
+<#
+.SYNOPSIS
+    Compares Group Policy settings between child and parent domains for specific OUs.
+.DESCRIPTION
+    This script extracts and compares Group Policy settings between OUs in parent and child domains
+    to identify differences during domain migration.
+.EXAMPLE
+    .\GPO_Compare.ps1
+#>
+
+# ===== CONFIGURATION VARIABLES =====
+# Set these values to match your environment
+$ChildDomain = "child.contoso.com"     # FQDN of the child domain 
+$ParentDomain = "contoso.com"          # FQDN of the parent domain
+$ChildDomainOU = "OU=Servers,DC=child,DC=contoso,DC=com"  # Distinguished name of the OU in child domain
+$ParentDomainOU = "OU=Servers,DC=contoso,DC=com"          # Distinguished name of the OU in parent domain
+$OutputFile = "DomainPolicyComparison.csv"  # Path for saving results
+
+# ===== SCRIPT PARAMETERS =====
+param (
+    [Parameter(Mandatory=$false)]
+    [string]$ChildDomainParam = $ChildDomain,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$ParentDomainParam = $ParentDomain,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$ChildDomainOUParam = $ChildDomainOU,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$ParentDomainOUParam = $ParentDomainOU,
+    
+    [Parameter(Mandatory=$false)]
+    [string]$OutputFileParam = $OutputFile
+)
+
+# Use parameters if provided, otherwise use the default variables
+$ChildDomain = $ChildDomainParam
+$ParentDomain = $ParentDomainParam
+$ChildDomainOU = $ChildDomainOUParam
+$ParentDomainOU = $ParentDomainOUParam
+$OutputFile = $OutputFileParam
+
+Write-Host "Comparing Group Policies between:"
+Write-Host "- Child Domain: $ChildDomain" 
+Write-Host "  OU Path: $ChildDomainOU"
+Write-Host "- Parent Domain: $ParentDomain"
+Write-Host "  OU Path: $ParentDomainOU"
+Write-Host "Results will be saved to: $OutputFile"
+
+# Ensure Group Policy module is available
+if (-not (Get-Module -ListAvailable -Name GroupPolicy)) {
+    Write-Host "GroupPolicy module not available. Installing RSAT Group Policy Management Tools..."
+    try {
+        Get-WindowsCapability -Name RSAT.GroupPolicy* -Online | Add-WindowsCapability -Online
+        Import-Module GroupPolicy
+    }
+    catch {
+        Write-Error "Failed to install GroupPolicy module. Please install RSAT tools manually."
+        exit 1
+    }
+}
+
+# Function to get GPOs linked to a specific OU
+function Get-LinkedGPOs {
+    param (
+        [string]$Domain,
+        [string]$OUPath
+    )
+    
+    Write-Host "Getting GPOs linked to $OUPath in domain $Domain..."
+    try {
+        # Get the OU object
+        $OU = Get-ADOrganizationalUnit -Identity $OUPath -Server $Domain
+        
+        # Get GPOs linked to this OU
+        $gpLinks = $OU.LinkedGroupPolicyObjects
+        $linkedGPOs = @()
+        
+        foreach ($gpLink in $gpLinks) {
+            # Extract GUID from the link
+            $guidMatch = [regex]::Match($gpLink, '{(.*?)}')
+            if ($guidMatch.Success) {
+                $gpGuid = $guidMatch.Groups[1].Value
+                
+                # Get the GPO using the GUID
+                $gpo = Get-GPO -Guid $gpGuid -Domain $Domain -ErrorAction SilentlyContinue
+                
+                if ($gpo) {
+                    $linkedGPOs += $gpo
+                }
+            }
+        }
+        
+        return $linkedGPOs
+    }
+    catch {
+        Write-Error "Failed to get GPOs linked to $OUPath in domain $Domain. Error: $_"
+        return $null
+    }
+}
+
+# Function to get GPO settings
+function Get-GPOSettings {
+    param (
+        [Microsoft.GroupPolicy.Gpo]$GPO,
+        [string]$Domain
+    )
+    
+    Write-Host "Getting settings for GPO: $($GPO.DisplayName)"
+    try {
+        # Get the GPO report in XML format
+        $report = Get-GPOReport -Guid $GPO.Id -Domain $Domain -ReportType Xml
+        [xml]$xmlReport = $report
+        
+        # Extract settings (simplified for example)
+        $settings = @{
+            ComputerSettings = @()
+            UserSettings = @()
+        }
+        
+        # Process computer settings
+        if ($xmlReport.GPO.Computer.ExtensionData) {
+            foreach ($extension in $xmlReport.GPO.Computer.ExtensionData) {
+                foreach ($setting in $extension.Extension.ChildNodes) {
+                    if ($setting.Name) {
+                        $settings.ComputerSettings += "$($setting.Name): $($setting.State)"
+                    }
+                }
+            }
+        }
+        
+        # Process user settings
+        if ($xmlReport.GPO.User.ExtensionData) {
+            foreach ($extension in $xmlReport.GPO.User.ExtensionData) {
+                foreach ($setting in $extension.Extension.ChildNodes) {
+                    if ($setting.Name) {
+                        $settings.UserSettings += "$($setting.Name): $($setting.State)"
+                    }
+                }
+            }
+        }
+        
+        return $settings
+    }
+    catch {
+        Write-Error "Failed to get settings for GPO $($GPO.DisplayName). Error: $_"
+        return $null
+    }
+}
+
+# Function to compare GPOs between domains
+function Compare-DomainGPOs {
+    param (
+        [array]$ChildGPOs,
+        [array]$ParentGPOs,
+        [string]$ChildDomain,
+        [string]$ParentDomain
+    )
+    
+    Write-Host "Comparing GPOs between domains..."
+    $differences = @()
+    
+    # Compare child domain GPOs to parent domain GPOs
+    foreach ($childGPO in $ChildGPOs) {
+        $matchingParentGPO = $ParentGPOs | Where-Object { $_.DisplayName -eq $childGPO.DisplayName }
+        
+        if (-not $matchingParentGPO) {
+            # GPO exists in child but not in parent
+            $differences += [PSCustomObject]@{
+                GPOName = $childGPO.DisplayName
+                DifferenceType = "Missing in Parent Domain"
+                Location = "Child Domain Only"
+                Details = "GPO exists in $ChildDomain but not in $ParentDomain"
+            }
+        }
+        else {
+            # GPO exists in both domains - compare settings
+            $childSettings = Get-GPOSettings -GPO $childGPO -Domain $ChildDomain
+            $parentSettings = Get-GPOSettings -GPO $matchingParentGPO -Domain $ParentDomain
+            
+            # Compare computer settings
+            $computerDiffs = Compare-Object -ReferenceObject $childSettings.ComputerSettings -DifferenceObject $parentSettings.ComputerSettings
+            
+            foreach ($diff in $computerDiffs) {
+                if ($diff.SideIndicator -eq "<=") {
+                    $differences += [PSCustomObject]@{
+                        GPOName = $childGPO.DisplayName
+                        DifferenceType = "Computer Setting Missing in Parent"
+                        Location = "Setting in Child Domain Only"
+                        Details = $diff.InputObject
+                    }
+                }
+                else {
+                    $differences += [PSCustomObject]@{
+                        GPOName = $childGPO.DisplayName
+                        DifferenceType = "Computer Setting Missing in Child"
+                        Location = "Setting in Parent Domain Only"
+                        Details = $diff.InputObject
+                    }
+                }
+            }
+            
+            # Compare user settings
+            $userDiffs = Compare-Object -ReferenceObject $childSettings.UserSettings -DifferenceObject $parentSettings.UserSettings
+            
+            foreach ($diff in $userDiffs) {
+                if ($diff.SideIndicator -eq "<=") {
+                    $differences += [PSCustomObject]@{
+                        GPOName = $childGPO.DisplayName
+                        DifferenceType = "User Setting Missing in Parent"
+                        Location = "Setting in Child Domain Only"
+                        Details = $diff.InputObject
+                    }
+                }
+                else {
+                    $differences += [PSCustomObject]@{
+                        GPOName = $childGPO.DisplayName
+                        DifferenceType = "User Setting Missing in Child"
+                        Location = "Setting in Parent Domain Only"
+                        Details = $diff.InputObject
+                    }
+                }
+            }
+        }
+    }
+    
+    # Check for GPOs in parent domain that are not in child domain
+    foreach ($parentGPO in $ParentGPOs) {
+        $matchingChildGPO = $ChildGPOs | Where-Object { $_.DisplayName -eq $parentGPO.DisplayName }
+        
+        if (-not $matchingChildGPO) {
+            # GPO exists in parent but not in child
+            $differences += [PSCustomObject]@{
+                GPOName = $parentGPO.DisplayName
+                DifferenceType = "Missing in Child Domain"
+                Location = "Parent Domain Only"
+                Details = "GPO exists in $ParentDomain but not in $ChildDomain"
+            }
+        }
+    }
+    
+    return $differences
+}
+
+# Main script execution
+try {
+    # Get GPOs linked to the specified OUs
+    $childGPOs = Get-LinkedGPOs -Domain $ChildDomain -OUPath $ChildDomainOU
+    $parentGPOs = Get-LinkedGPOs -Domain $ParentDomain -OUPath $ParentDomainOU
+    
+    if ($childGPOs -and $parentGPOs) {
+        Write-Host "Found $($childGPOs.Count) GPOs linked to the OU in $ChildDomain"
+        Write-Host "Found $($parentGPOs.Count) GPOs linked to the OU in $ParentDomain"
+        
+        # Compare GPOs
+        $differences = Compare-DomainGPOs -ChildGPOs $childGPOs -ParentGPOs $parentGPOs -ChildDomain $ChildDomain -ParentDomain $ParentDomain
+        
+        if ($differences.Count -eq 0) {
+            Write-Host "No differences found between GPOs in the specified OUs."
+        }
+        else {
+            Write-Host "Found $($differences.Count) differences between GPOs in the specified OUs."
+            $differences | Export-Csv -Path $OutputFile -NoTypeInformation
+            Write-Host "Differences exported to: $OutputFile"
+        }
+    }
+    else {
+        Write-Error "Failed to retrieve GPOs from one or both domains."
+    }
+}
+catch {
+    Write-Error "An error occurred: $_"
+}
