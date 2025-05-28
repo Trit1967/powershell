@@ -1,0 +1,103 @@
+<#
+.SYNOPSIS
+    Extracts GPResult data in formats ready for comparison.
+.DESCRIPTION
+    This script runs gpresult locally and exports the results in multiple formats
+    (XML, HTML, and TXT) for easy comparison between different domain machines.
+.EXAMPLE
+    .\Extract-GPResult.ps1
+#>
+
+# Output folder - change as needed
+$OutputFolder = "C:\GPOComparison"
+
+# Create output folder if it doesn't exist
+if (-not (Test-Path $OutputFolder)) {
+    New-Item -Path $OutputFolder -ItemType Directory -Force | Out-Null
+}
+
+# Get computer and domain info
+$computerName = $env:COMPUTERNAME
+$domainInfo = Get-WmiObject Win32_ComputerSystem
+$domainName = $domainInfo.Domain
+
+# Create a prefix for filenames based on domain
+$filePrefix = ($domainName.Split('.'))[0] + "_"
+
+# Define output file paths
+$xmlOutput = Join-Path $OutputFolder ($filePrefix + "GPResult.xml")
+$htmlOutput = Join-Path $OutputFolder ($filePrefix + "GPResult.html")
+$txtOutput = Join-Path $OutputFolder ($filePrefix + "GPResult.txt")
+$summaryOutput = Join-Path $OutputFolder ($filePrefix + "GPResult_Summary.csv")
+
+Write-Host "Extracting Group Policy Results on $computerName in domain $domainName"
+Write-Host "Output files will be saved to: $OutputFolder"
+
+try {
+    # Run gpresult in XML format
+    Write-Host "Generating XML output..."
+    Start-Process -FilePath "gpresult" -ArgumentList "/f /x `"$xmlOutput`"" -Wait -NoNewWindow
+    
+    # Run gpresult in HTML format
+    Write-Host "Generating HTML output..."
+    Start-Process -FilePath "gpresult" -ArgumentList "/h `"$htmlOutput`" /f" -Wait -NoNewWindow
+    
+    # Run gpresult in text format (includes more details in some cases)
+    Write-Host "Generating text output..."
+    Start-Process -FilePath "gpresult" -ArgumentList "/z > `"$txtOutput`"" -Wait -NoNewWindow -RedirectStandardOutput $txtOutput
+    
+    # Create a simple CSV summary of applied GPOs for quick comparison
+    Write-Host "Creating GPO summary CSV..."
+    
+    if (Test-Path $xmlOutput) {
+        [xml]$xmlData = Get-Content $xmlOutput
+        
+        $gpoSummary = @()
+        
+        # Add Computer GPOs to summary
+        foreach ($gpo in $xmlData.Rsop.ComputerResults.GPO) {
+            $gpoSummary += [PSCustomObject]@{
+                Domain = $domainName
+                Computer = $computerName
+                PolicyType = "Computer"
+                GPOName = $gpo.Name
+                Applied = "Yes"
+                Link = $gpo.LinkName
+                Status = $(if ($gpo.Enabled -eq "true") { "Enabled" } else { "Disabled" })
+                FilterType = $gpo.FilterName
+            }
+        }
+        
+        # Add User GPOs to summary
+        foreach ($gpo in $xmlData.Rsop.UserResults.GPO) {
+            $gpoSummary += [PSCustomObject]@{
+                Domain = $domainName
+                Computer = $computerName
+                PolicyType = "User"
+                GPOName = $gpo.Name
+                Applied = "Yes"
+                Link = $gpo.LinkName
+                Status = $(if ($gpo.Enabled -eq "true") { "Enabled" } else { "Disabled" })
+                FilterType = $gpo.FilterName
+            }
+        }
+        
+        # Export the summary to CSV
+        $gpoSummary | Export-Csv -Path $summaryOutput -NoTypeInformation
+    }
+    
+    Write-Host "`nGPResult extraction complete!"
+    Write-Host "Generated files:"
+    Write-Host "- XML: $xmlOutput"
+    Write-Host "- HTML: $htmlOutput"
+    Write-Host "- TXT: $txtOutput"
+    Write-Host "- CSV Summary: $summaryOutput"
+    
+    Write-Host "`nTo compare between domains:"
+    Write-Host "1. Run this script on a machine in each domain"
+    Write-Host "2. Copy all files to a single location"
+    Write-Host "3. Compare the summary CSV files or use the HTML reports for visual comparison"
+}
+catch {
+    Write-Error "Error extracting GPResult data: $_"
+}
