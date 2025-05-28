@@ -18,3 +18,10 @@ winget install Microsoft.RawImageExtension --accept-source-agreements --accept-p
 powershell# Get Microsoft Store app details using PowerShell
 $StoreApp = Get-AppxPackage -Name Microsoft.RawImageExtension
 $StoreApp | Select-Object Name, Publisher, Version, InstallLocation
+
+
+# Reset the Microsoft Store cache first
+Get-AppxPackage Microsoft.WindowsStore | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppxManifest.xml"}
+
+# Then upgrade the Movies & TV app
+Get-AppxPackage Microsoft.ZuneVideo | ForEach-Object {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppxManifest.xml"}
