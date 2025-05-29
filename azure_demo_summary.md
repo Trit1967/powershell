@@ -1,5 +1,5 @@
 # Azure AI Search + OpenAI Demo: End-to-End Summary
-
+https://capps-backend-evvy3sfudpeoe.politestone-6f84ddb9.westus2.azurecontainerapps.io/#/qa
 ## Data Flow
 1. **Document Upload** → Azure Blob Storage  
 2. **Indexing** → Azure Cognitive Search (semantic + vector)  
