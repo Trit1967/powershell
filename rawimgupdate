@@ -1,6 +1,6 @@
 # Store the script start time
 $startTime = Get-Date
-Write-Host "Starting RAW Image Extension version check at $startTime" -ForegroundColor Cyan
+Write-Host "Starting RAW Image Extension version check and update at $startTime" -ForegroundColor Cyan
 
 # PART 1: Check current version
 Write-Host "`n===== CHECKING CURRENT VERSION =====" -ForegroundColor Yellow
@@ -28,17 +28,26 @@ if ([version]$currentVersion -lt [version]$latestKnownVersion) {
     Write-Host "You appear to have the latest version based on our records" -ForegroundColor Green
 }
 
-# PART 2: Instructions for manual update
-Write-Host "`n===== UPDATE OPTIONS =====" -ForegroundColor Yellow
-Write-Host "To update the RAW Image Extension, use one of these methods:" -ForegroundColor Cyan
-Write-Host "1. Microsoft Store: Open Microsoft Store > Library > Get updates" -ForegroundColor White
-Write-Host "2. PowerShell (Run as Admin): Add-AppxPackage -Register '$($currentApp.InstallLocation)\AppxManifest.xml' -DisableDevelopmentMode" -ForegroundColor White
+# PART 2: Automatic update using Add-AppxPackage
+Write-Host "`n===== PERFORMING AUTOMATIC UPDATE =====" -ForegroundColor Yellow
 
-Write-Host "`nAfter updating, run the final part of this script to verify the new version" -ForegroundColor Yellow
-$continue = Read-Host "Press Enter after you've updated the extension (or type 'skip' to check without updating)"
+if ($currentApp) {
+    try {
+        Write-Host "Attempting to update RAW Image Extension..." -ForegroundColor Cyan
+        Add-AppxPackage -Register "$($currentApp.InstallLocation)\AppxManifest.xml" -DisableDevelopmentMode -ErrorAction Stop
+        Write-Host "Update command executed successfully" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "Error during update: $_" -ForegroundColor Red
+        Write-Host "You may need to run this script as Administrator" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Cannot update as the extension is not currently installed" -ForegroundColor Red
+    Write-Host "Please install from the Microsoft Store first" -ForegroundColor Yellow
+}
 
 # PART 3: Check new version after update
-Write-Host "`n===== CHECKING NEW VERSION =====" -ForegroundColor Yellow
+Write-Host "`n===== VERIFYING UPDATE =====" -ForegroundColor Yellow
 Write-Host "Checking installed version after update attempt..."
 $newApp = Get-AppxPackage Microsoft.RawImageExtension
 if ($newApp) {
