@@ -1,83 +1,44 @@
-
-<#
-.SYNOPSIS
-  Upgrade/install both the Store and FOD Raw Image Extension, then log versions to a CSV share.
-
-.NOTES
-  - Run elevated.
-  - Requires winget (Windows Package Manager) in PATH.
-  - UNC share must be writable by the machine account or running user.
-#>
-
-# —— CONFIGURE THIS ——
+# CONFIGURE THIS --
 $CsvPath = '\\YourServer\Share\rawimage_versions.csv'
-# ——————————————
 
 # Gather machine info
 $MachineName = $env:COMPUTERNAME
-$Timestamp   = (Get-Date).ToString('s')
+$Timestamp   = Get-Date -Format 's'
 
-# —— 1. Upgrade / Install Store-based extension via winget ——
-if (Get-Command winget -ErrorAction SilentlyContinue) {
-    Write-Host "► Attempting winget upgrade/install of Raw Image Extension..."
-    try {
-        # -e = exact match on ID
-        winget install --id Microsoft.RawImageExtension -e `
-            --accept-source-agreements --accept-package-agreements `
-            --silent
-        Write-Host "✔ winget operation completed."
-    } catch {
-        Write-Warning "⚠ winget failed or no change: $_"
-    }
-} else {
-    Write-Warning "⚠ winget not found. Skipping Store extension upgrade."
-}
+# Detect Store-installed extension
+$pkg = Get-AppxPackage -AllUsers |
+       Where-Object { $_.Name -like '*RawImageExtension*' }
+$AppxVersion = if ($null -ne $pkg) { $pkg.Version.ToString() } else { '' }
 
-# —— 2. Upgrade / Install FOD capability ——
+# Detect FOD capability entries
 $capEntries = Get-WindowsCapability -Online |
-    Where-Object Name -like 'Microsoft.Windows.RawImageExtension*'
+              Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' }
 
-if (-not $capEntries) {
-    Write-Warning "No FOD capability entries found. Skipping FOD install."
-} else {
-    foreach ($entry in $capEntries) {
-        Write-Host "► Adding/updating FOD capability: $($entry.Name)"
+$CapabilityVersion = ''
+$CapabilityState   = ''
+
+if ($capEntries.Count -gt 0) {
+    $firstCap = $capEntries[0]
+    $CapabilityVersion = ($firstCap.Name -split '~~~~')[1]
+    $CapabilityState   = $firstCap.State
+
+    foreach ($cap in $capEntries) {
         try {
-            Add-WindowsCapability -Online -Name $entry.Name -ErrorAction Stop | Out-Null
-            Write-Host "✔ FOD refreshed: $($entry.Name)"
-        } catch {
-            Write-Warning "⚠ Failed to refresh FOD $($entry.Name): $_"
+            Add-WindowsCapability -Online -Name $cap.Name -ErrorAction Stop | Out-Null
+            Write-Host "FOD refreshed: $($cap.Name)"
+        }
+        catch {
+            Write-Warning "Failed to refresh FOD $($cap.Name): $_"
         }
     }
 }
 
-# —— 3. Re-detect final versions & states ——
+# Final installed check
+$capInstalled = Get-WindowsCapability -Online |
+                Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' -and $_.State -eq 'Installed' }
+$Installed    = if ($pkg -or $capInstalled) { 'Yes' } else { 'No' }
 
-# Store/Appx
-$pkg = Get-AppxPackage -AllUsers | Where-Object Name -like '*RawImageExtension*'
-if ($pkg) {
-    $AppxVersion = $pkg.Version.ToString()
-} else {
-    $AppxVersion = ''
-}
-
-# FOD
-$cap = Get-WindowsCapability -Online |
-       Where-Object Name -like 'Microsoft.Windows.RawImageExtension*' |
-       Select-Object -First 1
-
-if ($cap) {
-    $CapabilityVersion = ($cap.Name -split '~~~~')[1]
-    $CapabilityState   = $cap.State
-} else {
-    $CapabilityVersion = ''
-    $CapabilityState   = ''
-}
-
-# —— 4. Determine Installed status ——
-$Installed = if ($pkg -or $CapabilityState -eq 'Installed') { 'Yes' } else { 'No' }
-
-# —— 5. Build & append record to CSV ——
+# Build CSV record
 $Record = [PSCustomObject]@{
     MachineName       = $MachineName
     Timestamp         = $Timestamp
@@ -87,16 +48,17 @@ $Record = [PSCustomObject]@{
     Installed         = $Installed
 }
 
-# Ensure share folder exists
-$Folder = Split-Path $CsvPath
+# Ensure folder exists
+$Folder = Split-Path $CsvPath -Parent
 if (-not (Test-Path $Folder)) {
     New-Item -Path $Folder -ItemType Directory -Force | Out-Null
 }
 
 # Export or append
 if (-not (Test-Path $CsvPath)) {
-    $Record | Export-Csv -Path $CsvPath -NoTypeInformation
-} else {
+    $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Force
+}
+else {
     $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Append
 }
 
