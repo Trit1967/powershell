@@ -1,7 +1,7 @@
 
 # CONFIGURE THIS --
 # UNC path (including filename) where all machines will append their report
-$CsvPath = '\\YourServer\Share\rawimage_versions.csv'
+$CsvPath = '\\ionmazutil004\temp\rawimage_versions.csv'
 
 # Gather machine info
 $MachineName = $env:COMPUTERNAME
