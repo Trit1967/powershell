@@ -1,39 +1,58 @@
-
 # ——— CONFIGURE THIS ———
 # UNC path (including filename) where all machines will append their report
-$CsvPath = '\\Y400467ourServer\Share\rawimage_versions.csv'
+$CsvPath = '\\YourServer\Share\rawimage_versions.csv'
 # —————————————————————
 
 # Gather machine info
 $MachineName = $env:COMPUTERNAME
 $Timestamp   = (Get-Date).ToString('s')
 
-# Method 1: Store-installed extension
+# Detect Store-installed extension
 $pkg = Get-AppxPackage -AllUsers | Where-Object Name -like '*RawImageExtension*'
-if ($pkg) {
-    $AppxVersion = $pkg.Version.ToString()
-} else {
-    $AppxVersion = ''
-}
+$AppxVersion = if ($pkg) { $pkg.Version.ToString() } else { '' }
 
-# Method 2: Features-on-Demand capability
+# Detect Features-on-Demand capability
 $cap = Get-WindowsCapability -Online | Where-Object Name -like 'Microsoft.Windows.RawImageExtension*'
 if ($cap) {
-    $Parts         = $cap.Name -split '~~~~'
-    $CapabilityVersion = $Parts[1]
-    $CapabilityState   = $cap.State
+    $Parts               = $cap.Name -split '~~~~'
+    $CapabilityVersion   = $Parts[1]
+    $CapabilityState     = $cap.State
 } else {
-    $CapabilityVersion = ''
-    $CapabilityState   = ''
+    $CapabilityVersion   = ''
+    $CapabilityState     = ''
 }
 
-# Build a single object for CSV
+# Attempt uninstallation
+$uninstalled = $false
+
+if ($pkg) {
+    try {
+        Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop
+        $uninstalled = $true
+    } catch {
+        Write-Warning "Failed to uninstall Appx extension: $_"
+    }
+}
+
+if ($cap) {
+    try {
+        Remove-WindowsCapability -Online -Name $cap.Name -ErrorAction Stop
+        $uninstalled = $true
+    } catch {
+        Write-Warning "Failed to uninstall Capability: $_"
+    }
+}
+
+$UninstalledStatus = if ($uninstalled) { 'Yes' } else { 'No' }
+
+# Build the record for CSV
 $Record = [PSCustomObject]@{
     MachineName        = $MachineName
     Timestamp          = $Timestamp
     AppxVersion        = $AppxVersion
     CapabilityVersion  = $CapabilityVersion
     CapabilityState    = $CapabilityState
+    Uninstalled        = $UninstalledStatus
 }
 
 # Ensure the share’s folder exists
@@ -49,4 +68,4 @@ if (-not (Test-Path $CsvPath)) {
     $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Append
 }
 
-Write-Host "Recorded Raw Image Extension info to $CsvPath"
+Write-Host "Recorded Raw Image Extension info (Uninstalled=$UninstalledStatus) to $CsvPath"
