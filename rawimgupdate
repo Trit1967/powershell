@@ -1,63 +1,50 @@
 
-# ——— CONFIGURE THIS ———
+# CONFIGURE THIS --
 # UNC path (including filename) where all machines will append their report
 $CsvPath = '\\YourServer\Share\rawimage_versions.csv'
-# —————————————————————
 
 # Gather machine info
 $MachineName = $env:COMPUTERNAME
-$Timestamp   = (Get-Date).ToString('s')
+$Timestamp   = Get-Date -Format 's'
 
-# — Detect Store-installed extension —
+# Detect Store-installed extension
 $pkg = Get-AppxPackage -AllUsers |
-       Where-Object Name -like '*RawImageExtension*'
-if ($pkg) {
-    $AppxVersion = $pkg.Version.ToString()
-} else {
-    $AppxVersion = ''
-}
+       Where-Object { $_.Name -like '*RawImageExtension*' }
+$AppxVersion = if ($null -ne $pkg) { $pkg.Version.ToString() } else { '' }
 
-# — Detect Raw Image FOD capability entries —
+# Detect FOD capability entries
 $capEntries = Get-WindowsCapability -Online |
-              Where-Object Name -like 'Microsoft.Windows.RawImageExtension*'
+              Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' }
 
-# Pick the first (usually the only) capability entry for version/state
-if ($capEntries) {
-    $cap         = $capEntries[0]
-    $CapabilityVersion = ($cap.Name -split '~~~~')[1]
-    $CapabilityState   = $cap.State
-} else {
-    $CapabilityVersion = ''
-    $CapabilityState   = ''
-}
+# Default values
+$CapabilityVersion = ''
+$CapabilityState   = ''
 
-# — Upgrade / Install the FOD capability —
-foreach ($entry in $capEntries) {
-    try {
-        Add-WindowsCapability -Online -Name $entry.Name -ErrorAction Stop |
-            Out-Null
-        Write-Host "✔ Refreshed FOD capability: $($entry.Name)"
+if ($capEntries.Count -gt 0) {
+    # Take the first entry for version/state
+    $firstCap = $capEntries[0]
+    $CapabilityVersion = ($firstCap.Name -split '~~~~')[1]
+    $CapabilityState   = $firstCap.State
+
+    # Refresh/install each matching capability
+    foreach ($cap in $capEntries) {
+        try {
+            Add-WindowsCapability -Online -Name $cap.Name -ErrorAction Stop | Out-Null
+            Write-Host "FOD refreshed: $($cap.Name)"
+        }
+        catch {
+            Write-Warning "Failed to refresh FOD $($cap.Name): $_"
+        }
     }
-    catch {
-        Write-Warning "⚠ Failed to refresh FOD $($entry.Name): $_"
-    }
 }
 
-# Re-query state in case it changed
-if ($cap) {
-    $new = Get-WindowsCapability -Online |
-           Where-Object Name -eq $cap.Name
-    $CapabilityState = $new.State
-}
+# Check final installed status
+$capInstalled = Get-WindowsCapability -Online |
+                Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' -and $_.State -eq 'Installed' }
 
-# — Determine Installed status —
-if ($pkg -or $CapabilityState -eq 'Installed') {
-    $Installed = 'Yes'
-} else {
-    $Installed = 'No'
-}
+$Installed = if ($pkg -or $capInstalled) { 'Yes' } else { 'No' }
 
-# — Build the record for CSV —
+# Build the CSV record
 $Record = [PSCustomObject]@{
     MachineName       = $MachineName
     Timestamp         = $Timestamp
@@ -67,16 +54,17 @@ $Record = [PSCustomObject]@{
     Installed         = $Installed
 }
 
-# — Ensure the share’s folder exists —
-$Folder = Split-Path $CsvPath
+# Ensure the destination folder exists
+$Folder = Split-Path $CsvPath -Parent
 if (-not (Test-Path $Folder)) {
     New-Item -Path $Folder -ItemType Directory -Force | Out-Null
 }
 
-# — Export or append to CSV —
+# Export or append to CSV
 if (-not (Test-Path $CsvPath)) {
-    $Record | Export-Csv -Path $CsvPath -NoTypeInformation
-} else {
+    $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Force
+}
+else {
     $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Append
 }
 
