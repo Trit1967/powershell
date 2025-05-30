@@ -1,65 +1,202 @@
-# CONFIGURE THIS --
-$CsvPath = '\\YourServer\Share\rawimage_versions.csv'
+<#
+.SYNOPSIS
+    Installs, updates, and logs Raw Image Extension status.
+.DESCRIPTION
+    This script checks for the Raw Image Extension, installs or updates it to the latest version,
+    and logs the status to a central CSV file. It works with both Store app and FOD versions.
+.NOTES
+    Requires administrative privileges to install FOD components.
+#>
 
-# Gather machine info
-$MachineName = $env:COMPUTERNAME
-$Timestamp   = Get-Date -Format 's'
+# Ensure script is running as admin
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Warning "This script requires administrative privileges to install components."
+    Write-Warning "Please restart the script as Administrator."
+    exit
+}
 
-# Detect Store-installed extension
-$pkg = Get-AppxPackage -AllUsers |
-       Where-Object { $_.Name -like '*RawImageExtension*' }
-$AppxVersion = if ($null -ne $pkg) { $pkg.Version.ToString() } else { '' }
+# CONFIGURE THIS -- Set to your actual network path or local path
+$CsvPath = 'C:\Logs\rawimage_versions.csv'
 
-# Detect FOD capability entries
-$capEntries = Get-WindowsCapability -Online |
-              Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' }
-
-$CapabilityVersion = ''
-$CapabilityState   = ''
-
-if ($capEntries.Count -gt 0) {
-    $firstCap = $capEntries[0]
-    $CapabilityVersion = ($firstCap.Name -split '~~~~')[1]
-    $CapabilityState   = $firstCap.State
-
-    foreach ($cap in $capEntries) {
+try {
+    # Gather machine info
+    $MachineName = $env:COMPUTERNAME
+    $Timestamp = Get-Date -Format 's'
+    
+    Write-Host "Checking Raw Image Extension components on $MachineName..."
+    
+    # Record initial state
+    $pkg = Get-AppxPackage -AllUsers | Where-Object { $_.Name -like '*RawImageExtension*' }
+    $initialAppxVersion = if ($null -ne $pkg) { $pkg.Version.ToString() } else { 'Not Installed' }
+    
+    $capEntries = @(Get-WindowsCapability -Online | Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' })
+    $initialCapabilityVersion = 'Not Found'
+    $initialCapabilityState = 'Not Found'
+    
+    if ($capEntries.Count -gt 0) {
+        $firstCap = $capEntries[0]
+        $nameParts = $firstCap.Name -split '~~~~'
+        $initialCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
+        $initialCapabilityState = $firstCap.State
+    }
+    
+    $initialInstalled = if (($null -ne $pkg) -or ($capEntries.Count -gt 0 -and $capEntries[0].State -eq 'Installed')) { 'Yes' } else { 'No' }
+    
+    Write-Host "Initial state:" -ForegroundColor Cyan
+    Write-Host "- Store App Version: $initialAppxVersion"
+    Write-Host "- FOD Capability Version: $initialCapabilityVersion"
+    Write-Host "- FOD Capability State: $initialCapabilityState"
+    Write-Host "- Installed: $initialInstalled"
+    
+    # Try to install via FOD first (preferred method)
+    Write-Host "`nAttempting to install/update Raw Image Extension via FOD..." -ForegroundColor Cyan
+    
+    # Get all available Raw Image Extension capabilities
+    $availableCapabilities = @(Get-WindowsCapability -Online | 
+                            Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' })
+    
+    if ($availableCapabilities.Count -eq 0) {
+        Write-Warning "No Raw Image Extension capabilities found on Windows Update servers."
+        Write-Host "Attempting to install via DISM from Windows Update..." -ForegroundColor Yellow
         try {
-            Add-WindowsCapability -Online -Name $cap.Name -ErrorAction Stop | Out-Null
-            Write-Host "FOD refreshed: $($cap.Name)"
+            # Try to add using DISM which can fetch from Windows Update
+            $result = Invoke-Expression "DISM.exe /Online /Add-Capability /CapabilityName:Microsoft.Windows.RawImageExtension~~~~0.0.1.0 /Source:Windows Update"
+            if ($result -match "successfully") {
+                Write-Host "Successfully installed Raw Image Extension via DISM!" -ForegroundColor Green
+            }
+            else {
+                Write-Warning "DISM installation attempt may have failed. Checking status..."
+            }
         }
         catch {
-            Write-Warning "Failed to refresh FOD $($cap.Name): $_"
+            Write-Warning "DISM installation failed: $_"
         }
     }
+    else {
+        $latestCap = $availableCapabilities | Sort-Object { [version]($_.Name -split '~~~~')[1] } -Descending | Select-Object -First 1
+        Write-Host "Latest available version: $($latestCap.Name)" -ForegroundColor Green
+        
+        try {
+            Write-Host "Installing latest version: $($latestCap.Name)"
+            Add-WindowsCapability -Online -Name $latestCap.Name | Out-Null
+            Write-Host "Installation successful!" -ForegroundColor Green
+        }
+        catch {
+            Write-Error "Failed to install capability: $_"
+        }
+    }
+    
+    # If FOD installation didn't work, try Microsoft Store as fallback
+    $updatedCapEntries = @(Get-WindowsCapability -Online | 
+                        Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' -and $_.State -eq 'Installed' })
+    
+    if ($updatedCapEntries.Count -eq 0 -and $initialInstalled -eq 'No') {
+        Write-Host "`nAttempting to install via Microsoft Store as fallback..." -ForegroundColor Yellow
+        try {
+            # Try to install from Microsoft Store (requires winget)
+            if (Get-Command winget -ErrorAction SilentlyContinue) {
+                Write-Host "Using winget to install from Microsoft Store..."
+                Start-Process -FilePath "winget" -ArgumentList "install -e --id 9NCTDW2W1BH8" -Wait
+                Write-Host "Winget installation attempt completed. Checking status..."
+            }
+            else {
+                # Alternative: Launch Microsoft Store
+                Write-Host "Winget not available. Opening Microsoft Store to the Raw Image Extension page..."
+                Start-Process "ms-windows-store://pdp/?productid=9NCTDW2W1BH8"
+                Write-Host "Please complete the installation from the Microsoft Store window that opened."
+                Start-Sleep -Seconds 5
+            }
+        }
+        catch {
+            Write-Warning "Store installation attempt failed: $_"
+        }
+    }
+    
+    # Check final state
+    Start-Sleep -Seconds 2  # Give system time to update status
+    
+    $pkg = Get-AppxPackage -AllUsers | Where-Object { $_.Name -like '*RawImageExtension*' }
+    $finalAppxVersion = if ($null -ne $pkg) { $pkg.Version.ToString() } else { 'Not Installed' }
+    
+    $capEntries = @(Get-WindowsCapability -Online | Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' })
+    $finalCapabilityVersion = 'Not Found'
+    $finalCapabilityState = 'Not Found'
+    
+    if ($capEntries.Count -gt 0) {
+        $firstCap = $capEntries | Where-Object { $_.State -eq 'Installed' } | Select-Object -First 1
+        if ($null -eq $firstCap) { $firstCap = $capEntries[0] }
+        
+        $nameParts = $firstCap.Name -split '~~~~'
+        $finalCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
+        $finalCapabilityState = $firstCap.State
+    }
+    
+    $finalInstalled = if (($null -ne $pkg) -or ($capEntries.Count -gt 0 -and ($capEntries | Where-Object { $_.State -eq 'Installed' }).Count -gt 0)) { 'Yes' } else { 'No' }
+    
+    # Build CSV record
+    $Record = [PSCustomObject]@{
+        MachineName             = $MachineName
+        Timestamp               = $Timestamp
+        InitialAppxVersion      = $initialAppxVersion
+        InitialCapabilityVersion = $initialCapabilityVersion
+        InitialCapabilityState  = $initialCapabilityState
+        InitialInstalled        = $initialInstalled
+        FinalAppxVersion        = $finalAppxVersion
+        FinalCapabilityVersion  = $finalCapabilityVersion
+        FinalCapabilityState    = $finalCapabilityState
+        FinalInstalled          = $finalInstalled
+        ActionTaken             = if ($initialInstalled -eq 'No' -and $finalInstalled -eq 'Yes') { 'Installed' } 
+                                elseif ($initialInstalled -eq 'Yes' -and $finalInstalled -eq 'Yes' -and 
+                                        ($initialAppxVersion -ne $finalAppxVersion -or $initialCapabilityVersion -ne $finalCapabilityVersion)) 
+                                        { 'Updated' } 
+                                elseif ($initialInstalled -eq 'Yes' -and $finalInstalled -eq 'Yes') { 'Already Installed' }
+                                else { 'Failed' }
+    }
+    
+    # Ensure folder exists
+    $Folder = Split-Path $CsvPath -Parent
+    if (-not (Test-Path $Folder)) {
+        try {
+            New-Item -Path $Folder -ItemType Directory -Force | Out-Null
+            Write-Host "Created directory: $Folder"
+        }
+        catch {
+            throw "Failed to create directory $Folder`: $_"
+        }
+    }
+    
+    # Export or append with error handling
+    try {
+        if (-not (Test-Path $CsvPath)) {
+            $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Force
+            Write-Host "Created new CSV file: $CsvPath"
+        }
+        else {
+            $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Append
+            Write-Host "Appended to existing CSV file: $CsvPath"
+        }
+        Write-Host "`nRecorded Raw Image Extension info to $CsvPath" -ForegroundColor Green
+    }
+    catch {
+        Write-Error "Failed to write to CSV file $CsvPath`: $_"
+    }
+    
+    # Summarize
+    Write-Host "`nSummary:" -ForegroundColor Cyan
+    Write-Host "Machine Name: $MachineName"
+    Write-Host "Action Taken: $($Record.ActionTaken)"
+    Write-Host "Store App Version: $finalAppxVersion (was: $initialAppxVersion)"
+    Write-Host "FOD Capability Version: $finalCapabilityVersion (was: $initialCapabilityVersion)"
+    Write-Host "FOD Capability State: $finalCapabilityState (was: $initialCapabilityState)"
+    Write-Host "Raw Image Extension Installed: $finalInstalled (was: $initialInstalled)"
+    
+    if ($finalInstalled -eq 'Yes') {
+        Write-Host "`nRaw Image Extension is now installed and ready to use!" -ForegroundColor Green
+    }
+    else {
+        Write-Host "`nWarning: Failed to install Raw Image Extension. Try installing manually from Microsoft Store." -ForegroundColor Red
+    }
 }
-
-# Final installed check
-$capInstalled = Get-WindowsCapability -Online |
-                Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' -and $_.State -eq 'Installed' }
-$Installed    = if ($pkg -or $capInstalled) { 'Yes' } else { 'No' }
-
-# Build CSV record
-$Record = [PSCustomObject]@{
-    MachineName       = $MachineName
-    Timestamp         = $Timestamp
-    AppxVersion       = $AppxVersion
-    CapabilityVersion = $CapabilityVersion
-    CapabilityState   = $CapabilityState
-    Installed         = $Installed
+catch {
+    Write-Error "An unexpected error occurred: $_"
 }
-
-# Ensure folder exists
-$Folder = Split-Path $CsvPath -Parent
-if (-not (Test-Path $Folder)) {
-    New-Item -Path $Folder -ItemType Directory -Force | Out-Null
-}
-
-# Export or append
-if (-not (Test-Path $CsvPath)) {
-    $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Force
-}
-else {
-    $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Append
-}
-
-Write-Host "`nRecorded Raw Image Extension info (Installed=$Installed) to $CsvPath"
