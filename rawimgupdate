@@ -1,72 +1,52 @@
-# Store the script start time
-$startTime = Get-Date
-Write-Host "Starting RAW Image Extension version check and update at $startTime" -ForegroundColor Cyan
 
-# PART 1: Check current version
-Write-Host "`n===== CHECKING CURRENT VERSION =====" -ForegroundColor Yellow
-$currentApp = Get-AppxPackage Microsoft.RawImageExtension
-if ($currentApp) {
-    $currentVersion = $currentApp.Version
-    Write-Host "Current installed version: $currentVersion" -ForegroundColor Green
-    
-    # Show more details about the current installation
-    Write-Host "Installation location: $($currentApp.InstallLocation)" -ForegroundColor Gray
-    Write-Host "Package full name: $($currentApp.PackageFullName)" -ForegroundColor Gray
+# ——— CONFIGURE THIS ———
+# UNC path (including filename) where all machines will append their report
+$CsvPath = '\\Y400467ourServer\Share\rawimage_versions.csv'
+# —————————————————————
+
+# Gather machine info
+$MachineName = $env:COMPUTERNAME
+$Timestamp   = (Get-Date).ToString('s')
+
+# Method 1: Store-installed extension
+$pkg = Get-AppxPackage -AllUsers | Where-Object Name -like '*RawImageExtension*'
+if ($pkg) {
+    $AppxVersion = $pkg.Version.ToString()
 } else {
-    Write-Host "RAW Image Extension is not currently installed" -ForegroundColor Red
-    $currentVersion = "0.0.0.0"
+    $AppxVersion = ''
 }
 
-# Define the latest known version
-$latestKnownVersion = "2.5.5.0"
-Write-Host "Latest known version: $latestKnownVersion" -ForegroundColor Cyan
-
-# Check if update is needed
-if ([version]$currentVersion -lt [version]$latestKnownVersion) {
-    Write-Host "Update recommended" -ForegroundColor Yellow
+# Method 2: Features-on-Demand capability
+$cap = Get-WindowsCapability -Online | Where-Object Name -like 'Microsoft.Windows.RawImageExtension*'
+if ($cap) {
+    $Parts         = $cap.Name -split '~~~~'
+    $CapabilityVersion = $Parts[1]
+    $CapabilityState   = $cap.State
 } else {
-    Write-Host "You appear to have the latest version based on our records" -ForegroundColor Green
+    $CapabilityVersion = ''
+    $CapabilityState   = ''
 }
 
-# PART 2: Automatic update using Add-AppxPackage
-Write-Host "`n===== PERFORMING AUTOMATIC UPDATE =====" -ForegroundColor Yellow
-
-if ($currentApp) {
-    try {
-        Write-Host "Attempting to update RAW Image Extension..." -ForegroundColor Cyan
-        Add-AppxPackage -Register "$($currentApp.InstallLocation)\AppxManifest.xml" -DisableDevelopmentMode -ErrorAction Stop
-        Write-Host "Update command executed successfully" -ForegroundColor Green
-    }
-    catch {
-        Write-Host "Error during update: $_" -ForegroundColor Red
-        Write-Host "You may need to run this script as Administrator" -ForegroundColor Yellow
-    }
-} else {
-    Write-Host "Cannot update as the extension is not currently installed" -ForegroundColor Red
-    Write-Host "Please install from the Microsoft Store first" -ForegroundColor Yellow
+# Build a single object for CSV
+$Record = [PSCustomObject]@{
+    MachineName        = $MachineName
+    Timestamp          = $Timestamp
+    AppxVersion        = $AppxVersion
+    CapabilityVersion  = $CapabilityVersion
+    CapabilityState    = $CapabilityState
 }
 
-# PART 3: Check new version after update
-Write-Host "`n===== VERIFYING UPDATE =====" -ForegroundColor Yellow
-Write-Host "Checking installed version after update attempt..."
-$newApp = Get-AppxPackage Microsoft.RawImageExtension
-if ($newApp) {
-    $newVersion = $newApp.Version
-    Write-Host "Current installed version: $newVersion" -ForegroundColor Green
-    
-    # Compare versions before and after
-    if ([version]$newVersion -gt [version]$currentVersion) {
-        Write-Host "SUCCESS: RAW Image Extension was updated from $currentVersion to $newVersion" -ForegroundColor Green
-    } elseif ([version]$newVersion -eq [version]$currentVersion) {
-        Write-Host "NO CHANGE: RAW Image Extension version remained at $currentVersion" -ForegroundColor Yellow
-    } else {
-        Write-Host "WARNING: RAW Image Extension version changed from $currentVersion to $newVersion (downgrade?)" -ForegroundColor Red
-    }
-} else {
-    Write-Host "ERROR: Cannot find RAW Image Extension after update attempt" -ForegroundColor Red
+# Ensure the share’s folder exists
+$Folder = Split-Path $CsvPath
+if (-not (Test-Path $Folder)) {
+    New-Item -Path $Folder -ItemType Directory -Force | Out-Null
 }
 
-# Calculate and display execution time
-$endTime = Get-Date
-$executionTime = $endTime - $startTime
-Write-Host "`nScript completed in $($executionTime.TotalSeconds) seconds" -ForegroundColor Cyan
+# Export or append to CSV
+if (-not (Test-Path $CsvPath)) {
+    $Record | Export-Csv -Path $CsvPath -NoTypeInformation
+} else {
+    $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Append
+}
+
+Write-Host "Recorded Raw Image Extension info to $CsvPath"
