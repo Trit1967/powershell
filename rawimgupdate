@@ -1,16 +1,16 @@
 <#
 .SYNOPSIS
-    Installs, updates, and logs Raw Image Extension status.
+    Upgrades Raw Image Extension to the latest version.
 .DESCRIPTION
-    This script checks for the Raw Image Extension, installs or updates it to the latest version,
-    and logs the status to a central CSV file. It works with both Store app and FOD versions.
+    This script checks for the latest Raw Image Extension version, upgrades to the latest version
+    if an older version is detected, and logs the status to a central CSV file.
 .NOTES
-    Requires administrative privileges to install FOD components.
+    Requires administrative privileges to upgrade FOD components.
 #>
 
 # Ensure script is running as admin
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Warning "This script requires administrative privileges to install components."
+    Write-Warning "This script requires administrative privileges to upgrade components."
     Write-Warning "Please restart the script as Administrator."
     exit
 }
@@ -23,7 +23,7 @@ try {
     $MachineName = $env:COMPUTERNAME
     $Timestamp = Get-Date -Format 's'
     
-    Write-Host "Checking Raw Image Extension components on $MachineName..."
+    Write-Host "Checking for Raw Image Extension upgrades on $MachineName..." -ForegroundColor Cyan
     
     # Record initial state
     $pkg = Get-AppxPackage -AllUsers | Where-Object { $_.Name -like '*RawImageExtension*' }
@@ -32,24 +32,45 @@ try {
     $capEntries = @(Get-WindowsCapability -Online | Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' })
     $initialCapabilityVersion = 'Not Found'
     $initialCapabilityState = 'Not Found'
+    $installedCap = $null
     
     if ($capEntries.Count -gt 0) {
-        $firstCap = $capEntries[0]
-        $nameParts = $firstCap.Name -split '~~~~'
-        $initialCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
-        $initialCapabilityState = $firstCap.State
+        $installedCap = $capEntries | Where-Object { $_.State -eq 'Installed' } | Select-Object -First 1
+        if ($null -ne $installedCap) {
+            $nameParts = $installedCap.Name -split '~~~~'
+            $initialCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
+            $initialCapabilityState = $installedCap.State
+        } else {
+            $firstCap = $capEntries[0]
+            $nameParts = $firstCap.Name -split '~~~~'
+            $initialCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
+            $initialCapabilityState = $firstCap.State
+        }
     }
     
-    $initialInstalled = if (($null -ne $pkg) -or ($capEntries.Count -gt 0 -and $capEntries[0].State -eq 'Installed')) { 'Yes' } else { 'No' }
+    $initialInstalled = if (($null -ne $pkg) -or ($null -ne $installedCap)) { 'Yes' } else { 'No' }
     
-    Write-Host "Initial state:" -ForegroundColor Cyan
+    Write-Host "Current version:" -ForegroundColor Cyan
     Write-Host "- Store App Version: $initialAppxVersion"
     Write-Host "- FOD Capability Version: $initialCapabilityVersion"
     Write-Host "- FOD Capability State: $initialCapabilityState"
     Write-Host "- Installed: $initialInstalled"
     
-    # Try to install via FOD first (preferred method)
-    Write-Host "`nAttempting to install/update Raw Image Extension via FOD..." -ForegroundColor Cyan
+    if ($initialInstalled -eq 'No') {
+        Write-Host "`nRaw Image Extension is not currently installed. Will install the latest version." -ForegroundColor Yellow
+    } else {
+        Write-Host "`nRaw Image Extension is already installed. Will check for upgrades." -ForegroundColor Yellow
+    }
+    
+    # Check for latest FOD version
+    Write-Host "`nChecking for latest FOD version..." -ForegroundColor Cyan
+    # Force refresh of capabilities catalog
+    try {
+        Write-Host "Refreshing Windows capabilities catalog..."
+        $null = Invoke-Expression "DISM.exe /Online /Cleanup-Image /RestoreHealth" 
+    } catch {
+        Write-Warning "Unable to refresh capabilities catalog: $_"
+    }
     
     # Get all available Raw Image Extension capabilities
     $availableCapabilities = @(Get-WindowsCapability -Online | 
@@ -57,64 +78,108 @@ try {
     
     if ($availableCapabilities.Count -eq 0) {
         Write-Warning "No Raw Image Extension capabilities found on Windows Update servers."
-        Write-Host "Attempting to install via DISM from Windows Update..." -ForegroundColor Yellow
-        try {
-            # Try to add using DISM which can fetch from Windows Update
-            $result = Invoke-Expression "DISM.exe /Online /Add-Capability /CapabilityName:Microsoft.Windows.RawImageExtension~~~~0.0.1.0 /Source:Windows Update"
-            if ($result -match "successfully") {
-                Write-Host "Successfully installed Raw Image Extension via DISM!" -ForegroundColor Green
-            }
-            else {
-                Write-Warning "DISM installation attempt may have failed. Checking status..."
-            }
-        }
-        catch {
-            Write-Warning "DISM installation failed: $_"
-        }
-    }
-    else {
-        $latestCap = $availableCapabilities | Sort-Object { [version]($_.Name -split '~~~~')[1] } -Descending | Select-Object -First 1
-        Write-Host "Latest available version: $($latestCap.Name)" -ForegroundColor Green
+    } else {
+        # Find the latest version
+        $latestCap = $availableCapabilities | 
+                    Sort-Object { 
+                        $verPart = ($_.Name -split '~~~~')[1]
+                        if ($verPart -match '^\d+\.\d+\.\d+\.\d+$') {
+                            try { [version]$verPart } catch { [version]"0.0.0.0" }
+                        } else {
+                            [version]"0.0.0.0"
+                        }
+                    } -Descending | 
+                    Select-Object -First 1
         
-        try {
-            Write-Host "Installing latest version: $($latestCap.Name)"
-            Add-WindowsCapability -Online -Name $latestCap.Name | Out-Null
-            Write-Host "Installation successful!" -ForegroundColor Green
+        $latestVersion = ($latestCap.Name -split '~~~~')[1]
+        Write-Host "Latest available FOD version: $latestVersion" -ForegroundColor Green
+        
+        # Check if upgrade is needed
+        $needsUpgrade = $false
+        if ($null -eq $installedCap) {
+            $needsUpgrade = $true
+            Write-Host "No FOD version installed, will install latest version."
+        } else {
+            $installedVersion = ($installedCap.Name -split '~~~~')[1]
+            if ($installedVersion -ne $latestVersion) {
+                $needsUpgrade = $true
+                Write-Host "Upgrade needed: Current version $installedVersion -> Latest version $latestVersion"
+            } else {
+                Write-Host "FOD is already at the latest version: $installedVersion" -ForegroundColor Green
+            }
         }
-        catch {
-            Write-Error "Failed to install capability: $_"
+        
+        # Perform the upgrade if needed
+        if ($needsUpgrade) {
+            Write-Host "`nUpgrading to latest FOD version..." -ForegroundColor Cyan
+            
+            # If we have an older version, remove it first
+            if ($null -ne $installedCap) {
+                try {
+                    Write-Host "Removing existing FOD version: $($installedCap.Name)"
+                    Remove-WindowsCapability -Online -Name $installedCap.Name | Out-Null
+                    Write-Host "Successfully removed old version."
+                } catch {
+                    Write-Warning "Failed to remove old capability: $_"
+                }
+            }
+            
+            # Install the latest version
+            try {
+                Write-Host "Installing latest FOD version: $($latestCap.Name)"
+                Add-WindowsCapability -Online -Name $latestCap.Name | Out-Null
+                Write-Host "Upgrade successful!" -ForegroundColor Green
+            } catch {
+                Write-Error "Failed to install latest capability: $_"
+                
+                # Try DISM as fallback
+                try {
+                    Write-Host "Attempting upgrade via DISM from Windows Update..." -ForegroundColor Yellow
+                    $result = Invoke-Expression "DISM.exe /Online /Add-Capability /CapabilityName:$($latestCap.Name) /Source:`"Windows Update`""
+                    if ($result -match "successfully") {
+                        Write-Host "Successfully upgraded Raw Image Extension via DISM!" -ForegroundColor Green
+                    } else {
+                        Write-Warning "DISM upgrade attempt may have failed. Checking status..."
+                    }
+                } catch {
+                    Write-Warning "DISM upgrade failed: $_"
+                }
+            }
         }
     }
     
-    # If FOD installation didn't work, try Microsoft Store as fallback
-    $updatedCapEntries = @(Get-WindowsCapability -Online | 
-                        Where-Object { $_.Name -like 'Microsoft.Windows.RawImageExtension*' -and $_.State -eq 'Installed' })
-    
-    if ($updatedCapEntries.Count -eq 0 -and $initialInstalled -eq 'No') {
-        Write-Host "`nAttempting to install via Microsoft Store as fallback..." -ForegroundColor Yellow
+    # Check for Microsoft Store updates
+    if ($null -ne $pkg) {
+        Write-Host "`nChecking for Microsoft Store app updates..." -ForegroundColor Cyan
         try {
-            # Try to install from Microsoft Store (requires winget)
+            # Try to update via PowerShell if modern way is available
+            if (Get-Command Get-CimInstance -ErrorAction SilentlyContinue) {
+                Write-Host "Requesting app update through Windows Store..."
+                Get-CimInstance -Namespace "Root\cimv2\mdm\dmmap" -ClassName "MDM_EnterpriseModernAppManagement_AppManagement01" | 
+                Invoke-CimMethod -MethodName UpdateScanMethod | Out-Null
+                Start-Sleep -Seconds 2
+            }
+            
+            # Try to update via winget
             if (Get-Command winget -ErrorAction SilentlyContinue) {
-                Write-Host "Using winget to install from Microsoft Store..."
-                Start-Process -FilePath "winget" -ArgumentList "install -e --id 9NCTDW2W1BH8" -Wait
-                Write-Host "Winget installation attempt completed. Checking status..."
+                Write-Host "Upgrading via winget..."
+                Start-Process -FilePath "winget" -ArgumentList "upgrade --id 9NCTDW2W1BH8" -Wait
+                Write-Host "Winget upgrade attempt completed."
+            } else {
+                # Fallback to manual message
+                Write-Host "For Store app updates, please check the Microsoft Store app manually." -ForegroundColor Yellow
+                Write-Host "You can open the Store and check for updates in the Library section."
             }
-            else {
-                # Alternative: Launch Microsoft Store
-                Write-Host "Winget not available. Opening Microsoft Store to the Raw Image Extension page..."
-                Start-Process "ms-windows-store://pdp/?productid=9NCTDW2W1BH8"
-                Write-Host "Please complete the installation from the Microsoft Store window that opened."
-                Start-Sleep -Seconds 5
-            }
-        }
-        catch {
-            Write-Warning "Store installation attempt failed: $_"
+        } catch {
+            Write-Warning "Store update check failed: $_"
         }
     }
+    
+    # Wait for potential upgrades to complete
+    Write-Host "`nWaiting for upgrades to complete..." -ForegroundColor Cyan
+    Start-Sleep -Seconds 5
     
     # Check final state
-    Start-Sleep -Seconds 2  # Give system time to update status
-    
     $pkg = Get-AppxPackage -AllUsers | Where-Object { $_.Name -like '*RawImageExtension*' }
     $finalAppxVersion = if ($null -ne $pkg) { $pkg.Version.ToString() } else { 'Not Installed' }
     
@@ -123,15 +188,33 @@ try {
     $finalCapabilityState = 'Not Found'
     
     if ($capEntries.Count -gt 0) {
-        $firstCap = $capEntries | Where-Object { $_.State -eq 'Installed' } | Select-Object -First 1
-        if ($null -eq $firstCap) { $firstCap = $capEntries[0] }
-        
-        $nameParts = $firstCap.Name -split '~~~~'
-        $finalCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
-        $finalCapabilityState = $firstCap.State
+        $installedCap = $capEntries | Where-Object { $_.State -eq 'Installed' } | Select-Object -First 1
+        if ($null -ne $installedCap) {
+            $nameParts = $installedCap.Name -split '~~~~'
+            $finalCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
+            $finalCapabilityState = $installedCap.State
+        } else {
+            $firstCap = $capEntries[0]
+            $nameParts = $firstCap.Name -split '~~~~'
+            $finalCapabilityVersion = if ($nameParts.Count -gt 1) { $nameParts[1] } else { 'Unknown' }
+            $finalCapabilityState = $firstCap.State
+        }
     }
     
-    $finalInstalled = if (($null -ne $pkg) -or ($capEntries.Count -gt 0 -and ($capEntries | Where-Object { $_.State -eq 'Installed' }).Count -gt 0)) { 'Yes' } else { 'No' }
+    $finalInstalled = if (($null -ne $pkg) -or ($capEntries | Where-Object { $_.State -eq 'Installed' }).Count -gt 0) { 'Yes' } else { 'No' }
+    
+    # Determine action taken
+    $actionTaken = if ($initialInstalled -eq 'No' -and $finalInstalled -eq 'Yes') { 
+        'Installed' 
+    } elseif ($initialInstalled -eq 'Yes' -and $finalInstalled -eq 'Yes') {
+        if ($initialAppxVersion -ne $finalAppxVersion -or $initialCapabilityVersion -ne $finalCapabilityVersion) {
+            'Upgraded'
+        } else {
+            'Already Up-to-Date'
+        }
+    } else { 
+        'Failed' 
+    }
     
     # Build CSV record
     $Record = [PSCustomObject]@{
@@ -145,12 +228,7 @@ try {
         FinalCapabilityVersion  = $finalCapabilityVersion
         FinalCapabilityState    = $finalCapabilityState
         FinalInstalled          = $finalInstalled
-        ActionTaken             = if ($initialInstalled -eq 'No' -and $finalInstalled -eq 'Yes') { 'Installed' } 
-                                elseif ($initialInstalled -eq 'Yes' -and $finalInstalled -eq 'Yes' -and 
-                                        ($initialAppxVersion -ne $finalAppxVersion -or $initialCapabilityVersion -ne $finalCapabilityVersion)) 
-                                        { 'Updated' } 
-                                elseif ($initialInstalled -eq 'Yes' -and $finalInstalled -eq 'Yes') { 'Already Installed' }
-                                else { 'Failed' }
+        ActionTaken             = $actionTaken
     }
     
     # Ensure folder exists
@@ -184,17 +262,20 @@ try {
     # Summarize
     Write-Host "`nSummary:" -ForegroundColor Cyan
     Write-Host "Machine Name: $MachineName"
-    Write-Host "Action Taken: $($Record.ActionTaken)"
+    Write-Host "Action Taken: $actionTaken"
     Write-Host "Store App Version: $finalAppxVersion (was: $initialAppxVersion)"
     Write-Host "FOD Capability Version: $finalCapabilityVersion (was: $initialCapabilityVersion)"
     Write-Host "FOD Capability State: $finalCapabilityState (was: $initialCapabilityState)"
     Write-Host "Raw Image Extension Installed: $finalInstalled (was: $initialInstalled)"
     
-    if ($finalInstalled -eq 'Yes') {
-        Write-Host "`nRaw Image Extension is now installed and ready to use!" -ForegroundColor Green
-    }
-    else {
-        Write-Host "`nWarning: Failed to install Raw Image Extension. Try installing manually from Microsoft Store." -ForegroundColor Red
+    if ($actionTaken -eq 'Upgraded') {
+        Write-Host "`nRaw Image Extension has been successfully upgraded to the latest version!" -ForegroundColor Green
+    } elseif ($actionTaken -eq 'Already Up-to-Date') {
+        Write-Host "`nRaw Image Extension is already at the latest version." -ForegroundColor Green
+    } elseif ($actionTaken -eq 'Installed') {
+        Write-Host "`nRaw Image Extension has been successfully installed!" -ForegroundColor Green
+    } else {
+        Write-Host "`nWarning: Failed to upgrade Raw Image Extension. Try upgrading manually from Microsoft Store." -ForegroundColor Red
     }
 }
 catch {
