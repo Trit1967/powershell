@@ -1,3 +1,4 @@
+
 # ——— CONFIGURE THIS ———
 # UNC path (including filename) where all machines will append their report
 $CsvPath = '\\YourServer\Share\rawimage_versions.csv'
@@ -7,65 +8,65 @@ $CsvPath = '\\YourServer\Share\rawimage_versions.csv'
 $MachineName = $env:COMPUTERNAME
 $Timestamp   = (Get-Date).ToString('s')
 
-# Detect Store-installed extension
+# — Detect Store-installed extension — 
 $pkg = Get-AppxPackage -AllUsers | Where-Object Name -like '*RawImageExtension*'
 $AppxVersion = if ($pkg) { $pkg.Version.ToString() } else { '' }
 
-# Detect Features-on-Demand capability
-$cap = Get-WindowsCapability -Online | Where-Object Name -like 'Microsoft.Windows.RawImageExtension*'
-if ($cap) {
-    $Parts               = $cap.Name -split '~~~~'
-    $CapabilityVersion   = $Parts[1]
-    $CapabilityState     = $cap.State
+# — Detect all Raw Image FOD capability entries (Installed or Not) —
+$capEntries = Get-WindowsCapability -Online |
+    Where-Object Name -like 'Microsoft.Windows.RawImageExtension*'
+
+# Extract version & state for the first (usually only) entry
+if ($capEntries) {
+    $cap = $capEntries[0]
+    $CapabilityVersion = ($cap.Name -split '~~~~')[1]
+    $CapabilityState   = $cap.State
 } else {
-    $CapabilityVersion   = ''
-    $CapabilityState     = ''
+    $CapabilityVersion = ''
+    $CapabilityState   = ''
 }
 
-# Attempt uninstallation
-$uninstalled = $false
-
-if ($pkg) {
+# — Upgrade / Install the FOD capability —
+foreach ($ce in $capEntries) {
     try {
-        Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop
-        $uninstalled = $true
+        Add-WindowsCapability -Online -Name $ce.Name -ErrorAction Stop |
+            Out-Null
+        Write-Host "✔ FOD refreshed: $($ce.Name)"
     } catch {
-        Write-Warning "Failed to uninstall Appx extension: $_"
+        Write-Warning "Failed to add/refresh FOD $($ce.Name): $_"
     }
 }
 
-if ($cap) {
-    try {
-        Remove-WindowsCapability -Online -Name $cap.Name -ErrorAction Stop
-        $uninstalled = $true
-    } catch {
-        Write-Warning "Failed to uninstall Capability: $_"
-    }
-}
+# — Determine final installed status —
+# Installed = Store package present OR FOD now in Installed state
+$Installed = if (
+    $pkg -or
+    (Get-WindowsCapability -Online |
+     Where-Object Name -eq $cap.Name |
+     Where-Object State -eq 'Installed')
+) { 'Yes' } else { 'No' }
 
-$UninstalledStatus = if ($uninstalled) { 'Yes' } else { 'No' }
-
-# Build the record for CSV
+# — Build the record for CSV —
 $Record = [PSCustomObject]@{
     MachineName        = $MachineName
     Timestamp          = $Timestamp
     AppxVersion        = $AppxVersion
     CapabilityVersion  = $CapabilityVersion
     CapabilityState    = $CapabilityState
-    Uninstalled        = $UninstalledStatus
+    Installed          = $Installed
 }
 
-# Ensure the share’s folder exists
+# — Ensure the share’s folder exists —
 $Folder = Split-Path $CsvPath
 if (-not (Test-Path $Folder)) {
     New-Item -Path $Folder -ItemType Directory -Force | Out-Null
 }
 
-# Export or append to CSV
+# — Export or append to CSV —
 if (-not (Test-Path $CsvPath)) {
     $Record | Export-Csv -Path $CsvPath -NoTypeInformation
 } else {
     $Record | Export-Csv -Path $CsvPath -NoTypeInformation -Append
 }
 
-Write-Host "Recorded Raw Image Extension info (Uninstalled=$UninstalledStatus) to $CsvPath"
+Write-Host "Recorded Raw Image Extension info (Installed=$Installed) to $CsvPath"
